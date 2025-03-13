@@ -1,0 +1,104 @@
+# Flutter Rental App Page Structure
+
+## 1. Authentication & Onboarding
+- Splash Screen: App logo, loading animation
+- Welcome Screen: App introduction with login/signup options
+- Login Screen: Email/password and social login options with two-factor authentication option
+- Signup Screen: Registration form with role selection (renter or owner)
+- Verification Screen: OTP or email verification
+- User Profile Setup: Basic profile information collection
+- Language Selection: Multi-language support configuration
+- Accessibility Settings: Screen reader, high contrast, text size options
+
+## 2. Renter Flow
+
+### Main Navigation (Bottom Navigation Bar)
+- Home Tab
+  - Featured listings
+  - Recently viewed
+  - Categories (Tent types, Business spaces, etc.)
+  - Search bar
+  - Promotions and special offers section
+  - Seasonal deals and flash sales
+  
+- Search Tab
+  - Advanced filters
+  - Map view toggle with virtual tours marker
+  - Search results list
+  - Sort options
+  - Saved search alerts
+  - Proximity-based filters
+  - AI-recommended properties section
+
+- Bookings Tab
+  - Upcoming bookings
+  - Past bookings
+  - Booking requests
+  - Saved/favorite properties
+  - Digital check-in/checkout information
+  - Booking documents section
+
+- Messages Tab
+  - Chat inbox
+  - Conversation threads with owners
+  - Notification center
+  - Community forums and FAQs
+  - Local guides section
+
+- Profile Tab
+  - User details
+  - Payment methods and history
+  - Settings (language, notifications, accessibility)
+  - Support/Help
+  - Referral program
+  - Loyalty rewards status
+  - Stored documents
+
+### Detail Screens
+- Listing Detail Screen: Photos, amenities, pricing, availability, virtual tours/360° views
+- Booking Process Screens: Date selection, guest info, payment options (split payment, installments)
+- Review Submission Screen: Rating and feedback form
+- Booking Confirmation Screen: Receipt, details, and offline access option
+- Property Area Guide: Local attractions, events, and partner businesses
+- Digital Contract Screen: View and sign rental agreements
+- Property Check-in Screen: Digital check-in procedures, condition reporting
+
+## 3. Owner Flow
+
+### Main Navigation (Bottom Navigation Bar)
+- Dashboard Tab
+  - Overview statistics (bookings, revenue, ratings)
+  - Quick actions (add listing, respond to requests)
+  
+- Listings Tab
+  - List of properties
+  - Add new listing button
+  - Edit/manage existing listings
+  
+- Calendar Tab
+  - Availability management
+  - Booking schedule view
+  - Blocked dates
+
+- Bookings Tab
+  - Booking requests
+  - Active bookings
+  - Past bookings
+  - Client information
+
+- Messages Tab
+  - Chat with renters
+  - Notification center
+
+### Detail Screens
+- Property Editor: Multi-step form for adding/editing listings
+- Booking Management Screen: Accept/decline and manage bookings
+- Revenue Reports: Detailed financial analytics
+- Settings Screen: Account, notifications, payment setup
+
+## 4. Common Components
+- Navigation Drawer: Additional features, help, about, etc.
+- Notification System: In-app notifications overlay
+- Modal Sheets: Quick actions and filters
+- Loading States: Skeleton screens, shimmer effects
+- Error Handling Views: Connection issues, empty states

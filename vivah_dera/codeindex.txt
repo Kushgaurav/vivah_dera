@@ -1,0 +1,85 @@
+every time you make a change to the code, you should update the code index file with the following information:
+
+
+# Vivah Dera Code Index
+
+## Project Structure
+
+### Core Files
+- lib/main.dart: Main entry point of the application with MaterialApp setup using deepPurple theme and OwnerDashboardScreen as home
+- lib/themes/app_theme.dart: Theme configuration for light and dark mode with modern UI styling based on design guide
+
+### Screens
+
+#### Onboarding Flow
+- lib/screens/onboarding/splash_screen.dart: Initial loading screen with animation and timed navigation to welcome screen
+- lib/screens/onboarding/welcome_screen.dart: Introduction screen with login/signup options and app introduction
+- lib/screens/onboarding/login_screen.dart: Login screen with email/password and social login options (implemented)
+- lib/screens/onboarding/signup_screen.dart: Registration with role selection (renter/owner) (implemented)
+- lib/screens/onboarding/verification_screen.dart: OTP verification screen with countdown timer (to be implemented)
+- lib/screens/onboarding/profile_setup_screen.dart: Multi-step profile completion flow (to be implemented)
+
+#### Renter Flow
+- lib/screens/renter/renter_home_screen.dart: Main screen with bottom navigation, categories, and featured listings (implemented)
+- lib/screens/renter/search_screen.dart: Search with filters (price, category) and map/list toggle view (to be implemented)
+- lib/screens/renter/listing_detail_screen.dart: Detailed venue information with gallery, tabs for overview, reviews and amenities (implemented)
+- lib/screens/renter/booking_screen.dart: Multi-step booking process (to be implemented)
+- lib/screens/renter/booking_confirmation_screen.dart: Confirmation after successful booking (to be implemented)
+- lib/screens/renter/bookings_screen.dart: List of user's bookings (to be implemented)
+- lib/screens/renter/booking_detail_screen.dart: Details of a specific booking (to be implemented)
+- lib/screens/renter/messages_screen.dart: List of conversations with property owners (implemented and shared with owner flow)
+- lib/screens/renter/chat_screen.dart: Individual chat interface (to be implemented)
+- lib/screens/renter/profile_screen.dart: User profile and settings management (to be implemented)
+
+#### Owner Flow
+- lib/screens/owner/owner_dashboard_screen.dart: Main dashboard for property owners (implemented with 5 pages and bottom navigation)
+  - Dashboard page with stats cards, quick actions, recent bookings, and to-do list
+  - Navigation to other screens (Listings, Calendar, Bookings, Messages)
+  - FloatingActionButton for adding new listings when on Listings tab
+- lib/screens/owner/owner_listings_screen.dart: List of owner's properties (basic implementation)
+- lib/screens/owner/owner_calendar_screen.dart: Calendar view for managing property availability (basic implementation)
+- lib/screens/owner/owner_bookings_screen.dart: Manage booking requests and current bookings (basic implementation)
+- lib/screens/owner/listing_editor_screen.dart: Form for adding/editing property listings (basic implementation)
+- lib/screens/owner/owner_revenue_screen.dart: Financial analytics (to be implemented)
+
+### Widgets
+- lib/widgets/property_card.dart: Reusable card for displaying property listings (implemented)
+- lib/widgets/rating_bar.dart: Star rating display component (implemented)
+- lib/widgets/date_range_picker.dart: Custom date range selector for bookings (implemented)
+- lib/widgets/loading_indicator.dart: Branded loading animation (implemented)
+- lib/widgets/category_selector.dart: Horizontal scrolling category options (implemented)
+
+## Current Development Status
+- Theme system is implemented with light and dark mode support
+- Splash screen and welcome screen are implemented with modern design
+- Main application entry point is implemented with MaterialApp configuration
+- Login and signup screens are implemented with form validation and role selection
+- Renter home screen is implemented with bottom navigation, categories, and featured listings
+- Property card widget is implemented for consistent listing display across the app
+- Listing detail screen is implemented with image gallery and tabbed information display
+- Rating bar component is implemented for displaying venue ratings
+- Date range picker is implemented for booking date selection
+- Loading indicator and category selector widgets are implemented
+- Owner dashboard is implemented with bottom navigation and 5 tabs:
+  - Dashboard page with welcome message, statistics cards, quick actions, recent bookings, and to-do list
+  - Listings page with placeholder UI and floating action button for adding new listings
+  - Calendar page with placeholder UI
+  - Bookings page with placeholder UI
+  - Messages page (shared with renter flow)
+- Navigation between tabs is working
+- ListingEditorScreen is implemented with basic UI structure
+
+## ToDo
+- Complete verification and profile setup flows
+- Complete implementation of remaining owner dashboard functionality
+- Implement actual authentication logic with Firebase Auth
+- Build remaining renter screens (booking flow)
+- Add review submission functionality
+- Add payment processing integration
+- Build notification system
+- Implement favorites/bookmarks functionality
+- Add map view integration
+- Add offline functionality and data caching
+- Implement multi-language support
+- Add accessibility features
+- Integrate analytics for user behavior tracking

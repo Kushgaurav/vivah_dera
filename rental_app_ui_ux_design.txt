@@ -1,0 +1,197 @@
+# Rental App UI/UX Design Guide
+
+## Visual Design Language
+
+### 1. Color System
+- **Primary Palette**
+  - Primary: #3A66DB (Blue) - Conveys trust and stability
+  - Secondary: #00C6AE (Teal) - Fresh and modern accent
+  - Tertiary: #FF8547 (Coral) - Energetic call-to-action
+- **Neutrals**
+  - Dark: #252D3C - Text and important elements
+  - Mid: #7A869A - Secondary text, borders
+  - Light: #F4F7FC - Backgrounds, cards
+- **Semantic Colors**
+  - Success: #32D583 - Confirmations, approvals
+  - Warning: #FFBE0B - Alerts, pending status
+  - Error: #FF5252 - Error states, critical information
+- **Accessibility Considerations**
+  - All color pairs meet WCAG 2.1 AA contrast requirements
+  - Color is never the sole indicator of meaning
+
+### 2. Typography
+- **Font Family**: SF Pro / Roboto (system defaults)
+- **Type Scale**
+  - Display: 34px / Bold
+  - Heading 1: 28px / Bold
+  - Heading 2: 22px / Bold
+  - Heading 3: 18px / Medium
+  - Body 1: 16px / Regular
+  - Body 2: 14px / Regular
+  - Caption: 12px / Regular
+- **Line Heights**
+  - Headlines: 1.2
+  - Body text: 1.5
+  - Button text: 1.25
+
+### 3. Iconography
+- Outlined style with 2px stroke weight
+- 24×24px touch target minimum
+- Consistent visual weight throughout the system
+- Meaningful, intuitive metaphors
+
+### 4. Layout & Spacing
+- 8px grid system
+- Responsive layout with 16px base margin
+- Content density adjustments for different screen sizes
+- Padding hierarchy:
+  - Containers: 16px
+  - Cards: 16px
+  - Input fields: 12px
+  - Buttons: 16px horizontal, 12px vertical
+
+## Component Design
+
+### 1. Core Components
+- **Cards**
+  - Property listings: Image (16:9), title, price, key amenities
+  - Booking cards: Status indicator, date range, thumbnail
+  - Review cards: Star rating, text snippet, user avatar
+- **Buttons**
+  - Primary: Filled, rounded corners (8px)
+  - Secondary: Outlined
+  - Tertiary: Text only with subtle hover effect
+  - FAB: For primary actions like "Add Listing"
+- **Input Controls**
+  - Text fields with floating labels
+  - Custom select dropdowns
+  - Date picker with range selection
+  - Toggles and checkboxes with animated states
+
+### 2. Navigation Patterns
+- Bottom navigation bar with badges for notifications
+- Back gesture and button consistently available
+- Progress indicators for multi-step flows
+- Tab bars with pill-shaped indicator
+- Breadcrumbs for deep navigation hierarchies
+
+### 3. List Displays
+- Virtual scrolling for performance
+- Pull-to-refresh gesture
+- Lazy loading with shimmer effect placeholders
+- List item hierarchy with primary/secondary text
+- Swipe actions where appropriate
+
+## Interaction Design
+
+### 1. Micro-interactions
+- Button press effects: Scale down 2% + shadow reduction
+- Success animations: Checkmarks, confetti for achievements
+- Loading states: Branded spinner, progress indicators
+- Transitions between screens: Shared element transitions
+- Form validation: Inline real-time feedback
+
+### 2. Motion Design
+- **Timing**
+  - Standard transitions: 300ms
+  - Emphasis animations: 500ms
+  - Micro-interactions: 200ms
+- **Easing**
+  - Standard: cubic-bezier(0.4, 0.0, 0.2, 1)
+  - Deceleration: cubic-bezier(0.0, 0.0, 0.2, 1)
+  - Acceleration: cubic-bezier(0.4, 0.0, 1, 1)
+- **Motion Principles**
+  - Natural and familiar physics
+  - Purposeful motion that guides attention
+  - Consistent across the application
+  - Respectful of reduced motion settings
+
+## User Workflow Design
+
+### 1. Onboarding Flow
+- **Emotional Journey**: Excitement → Trust → Confidence
+- **Key Screens**:
+  1. Welcome screen: Value proposition
+  2. Role selection: Visual distinction between renter/owner
+  3. Authentication: Streamlined form with social options
+  4. Profile completion: Progress bar, skip options
+  5. Preference setting: Visual choices for categories
+  6. Success celebration: Animation to home screen
+
+### 2. Property Discovery Flow
+- **Emotional Journey**: Curiosity → Interest → Desire
+- **Key Screens**:
+  1. Home feed: Curated, visually rich listings
+  2. Search refinement: Interactive filters with instant results
+  3. Map exploration: Clusters, card previews on tap
+  4. Listing detail: Gallery-first with sticky booking CTA
+  5. Virtual tour: Immersive with hotspots for features
+  6. Saved for later: Visual bookmark confirmation
+
+### 3. Booking Flow
+- **Emotional Journey**: Consideration → Decision → Satisfaction
+- **Key Screens**:
+  1. Date selection: Calendar with availability highlighting
+  2. Guest/Requirements input: Simple form with smart defaults
+  3. Booking summary: Clear breakdown of costs
+  4. Payment method: Visual payment options with security cues
+  5. Confirmation: Success animation with next steps
+  6. Booking details access: Digital tickets/vouchers
+
+### 4. Owner Property Management Flow
+- **Emotional Journey**: Control → Insight → Accomplishment
+- **Key Screens**:
+  1. Dashboard overview: Visual data presentations
+  2. Listing creation: Step indicators, visual editor
+  3. Calendar management: Interactive timeline
+  4. Booking review: Accept/decline with guest info
+  5. Messages interface: Quick replies, templates
+  6. Revenue tracking: Visual charts with filtering
+
+## Accessibility & Inclusivity
+
+### 1. Accessibility Features
+- Dynamic text sizing
+- Screen reader compatibility
+- Focus indicators for keyboard navigation
+- Alternative text for all images
+- Color blind friendly interface
+- Voice control support
+
+### 2. Inclusivity Considerations
+- Gender-neutral language and imagery
+- Cultural sensitivity in iconography and illustrations
+- Multiple language support with proper RTL handling
+- Accommodations for various levels of tech literacy
+- Economic inclusivity (low-bandwidth options)
+
+## Design-to-Development Handoff
+
+### 1. Design System Documentation
+- Component library in Figma/Adobe XD
+- Interactive prototype for key flows
+- Animation specifications with Lottie files
+- Comprehensive style guide with code equivalents
+
+### 2. Implementation Guidelines
+- Flutter-specific widget recommendations
+- Responsive breakpoints and behaviors
+- State management patterns for UI components
+- Accessibility implementation checklist
+- Theme structure for dark/light mode support
+
+## User Testing Guidelines
+
+### 1. Usability Testing Focus Areas
+- First-time user experience
+- Task completion efficiency
+- Error recovery
+- Cross-platform consistency
+- Emotional response to visual design
+
+### 2. Measurement Metrics
+- Time to complete key tasks
+- Success/failure rates
+- Satisfaction scores
+- Comprehension of visual hierarchy
+- Emotional response tracking

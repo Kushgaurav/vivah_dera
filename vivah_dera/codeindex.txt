@@ -9,6 +9,10 @@ every time you make a change to the code, you should update the code index file 
 - lib/main.dart: Main entry point of the application with MaterialApp setup using deepPurple theme and OwnerDashboardScreen as home
 - lib/themes/app_theme.dart: Theme configuration for light and dark mode with modern UI styling based on design guide
 
+### Version Control
+- .gitignore: Configuration file listing patterns of files/directories to be ignored by Git
+- Git repository configured for version control and team collaboration
+
 ### Screens
 
 #### Onboarding Flow

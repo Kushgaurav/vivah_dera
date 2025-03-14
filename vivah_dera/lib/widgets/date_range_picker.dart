@@ -2,39 +2,44 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 class DateRangePicker extends StatefulWidget {
-  final Function(DateTimeRange) onDateRangeSelected;
-  final DateTimeRange? initialDateRange;
+  final DateTime? startDate;
+  final DateTime? endDate;
+  final Function(DateTime)? onStartDateChanged;
+  final Function(DateTime)? onEndDateChanged;
+  final Function(DateTime, DateTime)? onDateRangeSelected;
   final DateTime? firstDate;
   final DateTime? lastDate;
   final List<DateTime>? disabledDates;
   final String? title;
 
   const DateRangePicker({
-    Key? key,
-    required this.onDateRangeSelected,
-    this.initialDateRange,
+    super.key,
+    this.startDate,
+    this.endDate,
+    this.onStartDateChanged,
+    this.onEndDateChanged,
+    this.onDateRangeSelected,
     this.firstDate,
     this.lastDate,
     this.disabledDates,
     this.title,
-  }) : super(key: key);
+  });
 
   @override
-  _DateRangePickerState createState() => _DateRangePickerState();
+  State<DateRangePicker> createState() => DateRangePickerState();
 }
 
-class _DateRangePickerState extends State<DateRangePicker> {
+class DateRangePickerState extends State<DateRangePicker> {
   DateTimeRange? _selectedDateRange;
   final DateFormat _dateFormat = DateFormat('MMM dd, yyyy');
 
   @override
   void initState() {
     super.initState();
-    _selectedDateRange = widget.initialDateRange ??
-        DateTimeRange(
-          start: DateTime.now(),
-          end: DateTime.now().add(const Duration(days: 1)),
-        );
+    DateTime start = widget.startDate ?? DateTime.now();
+    DateTime end =
+        widget.endDate ?? DateTime.now().add(const Duration(days: 1));
+    _selectedDateRange = DateTimeRange(start: start, end: end);
   }
 
   Future<void> _selectDateRange() async {
@@ -42,7 +47,8 @@ class _DateRangePickerState extends State<DateRangePicker> {
       context: context,
       initialDateRange: _selectedDateRange,
       firstDate: widget.firstDate ?? DateTime.now(),
-      lastDate: widget.lastDate ?? DateTime.now().add(const Duration(days: 365)),
+      lastDate:
+          widget.lastDate ?? DateTime.now().add(const Duration(days: 365)),
       builder: (BuildContext context, Widget? child) {
         return Theme(
           data: ThemeData.light().copyWith(
@@ -54,28 +60,67 @@ class _DateRangePickerState extends State<DateRangePicker> {
           child: child!,
         );
       },
-      selectableDayPredicate: widget.disabledDates != null
-          ? (DateTime day) {
-              return !widget.disabledDates!.any(
-                (DateTime disabledDate) =>
-                    day.year == disabledDate.year &&
-                    day.month == disabledDate.month &&
-                    day.day == disabledDate.day,
-              );
-            }
-          : null,
     );
 
+    if (!mounted) return; // Add mounted check before using context
+
     if (picked != null) {
+      // Validate the selected dates
+      if (widget.disabledDates != null) {
+        final DateTime start = picked.start;
+        final DateTime end = picked.end;
+
+        // Check each day in the range
+        for (int i = 0; i <= end.difference(start).inDays; i++) {
+          final DateTime currentDate = start.add(Duration(days: i));
+          if (!_isDateSelectable(currentDate)) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Selected range contains unavailable dates'),
+              ),
+            );
+            return;
+          }
+        }
+      }
+
       setState(() {
         _selectedDateRange = picked;
       });
-      widget.onDateRangeSelected(picked);
+
+      // Call all the appropriate callbacks
+      if (widget.onStartDateChanged != null) {
+        widget.onStartDateChanged!(picked.start);
+      }
+
+      if (widget.onEndDateChanged != null) {
+        widget.onEndDateChanged!(picked.end);
+      }
+
+      if (widget.onDateRangeSelected != null) {
+        widget.onDateRangeSelected!(picked.start, picked.end);
+      }
     }
+  }
+
+  bool _isDateSelectable(DateTime day) {
+    if (widget.disabledDates != null) {
+      return !widget.disabledDates!.any(
+        (DateTime disabledDate) =>
+            day.year == disabledDate.year &&
+            day.month == disabledDate.month &&
+            day.day == disabledDate.day,
+      );
+    }
+    return true;
   }
 
   @override
   Widget build(BuildContext context) {
+    // Use widget.startDate and widget.endDate if available, otherwise use _selectedDateRange
+    DateTime start = widget.startDate ?? _selectedDateRange!.start;
+    DateTime end = widget.endDate ?? _selectedDateRange!.end;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
@@ -85,10 +130,7 @@ class _DateRangePickerState extends State<DateRangePicker> {
             padding: const EdgeInsets.only(bottom: 8.0),
             child: Text(
               widget.title!,
-              style: const TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 16,
-              ),
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
             ),
           ),
         InkWell(
@@ -109,16 +151,11 @@ class _DateRangePickerState extends State<DateRangePicker> {
                 ),
                 const SizedBox(width: 8),
                 Text(
-                  '${_dateFormat.format(_selectedDateRange!.start)} - ${_dateFormat.format(_selectedDateRange!.end)}',
-                  style: const TextStyle(
-                    fontSize: 16,
-                  ),
+                  '${_dateFormat.format(start)} - ${_dateFormat.format(end)}',
+                  style: const TextStyle(fontSize: 16),
                 ),
                 const Spacer(),
-                Icon(
-                  Icons.arrow_drop_down,
-                  color: Colors.grey[600],
-                ),
+                Icon(Icons.arrow_drop_down, color: Colors.grey[600]),
               ],
             ),
           ),
@@ -128,13 +165,10 @@ class _DateRangePickerState extends State<DateRangePicker> {
           children: [
             Text(
               'Duration: ',
-              style: TextStyle(
-                color: Colors.grey[600],
-                fontSize: 14,
-              ),
+              style: TextStyle(color: Colors.grey[600], fontSize: 14),
             ),
             Text(
-              '${_selectedDateRange!.duration.inDays} days',
+              '${end.difference(start).inDays + 1} days',
               style: TextStyle(
                 fontWeight: FontWeight.bold,
                 color: Theme.of(context).primaryColor,

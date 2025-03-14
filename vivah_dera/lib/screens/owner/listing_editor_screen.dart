@@ -114,13 +114,13 @@ class _ListingEditorScreenState extends State<ListingEditorScreen> {
         ]);
 
         _rulesControllers.clear();
-        [
+        for (var rule in [
           'No smoking indoors',
           'Music until 10:00 PM only',
           'No outside catering',
-        ].forEach((rule) {
+        ]) {
           _rulesControllers.add(TextEditingController(text: rule));
-        });
+        }
 
         _imageUrls.addAll([
           'https://source.unsplash.com/random/800x600?wedding,hall&sig=1',
@@ -150,21 +150,43 @@ class _ListingEditorScreenState extends State<ListingEditorScreen> {
     super.dispose();
   }
 
+  Future<bool> _onWillPop() async {
+    // Add your pop logic here
+    return true;
+  }
+
   @override
   Widget build(BuildContext context) {
-    return WillPopScope(
-      onWillPop: () async {
-        if (_currentStep > 0) {
-          setState(() {
-            _currentStep--;
-          });
-          return false;
-        }
-        return true;
+    return PopScope(
+      canPop: _currentStep == 0,
+      onPopInvokedWithResult: (didPop, result) async {
+        if (didPop) return;
+        setState(() {
+          _currentStep--;
+        });
       },
       child: Scaffold(
         appBar: AppBar(
           title: Text(widget.isEditing ? 'Edit Venue' : 'Add New Venue'),
+          leading: PopScope(
+            canPop: false,
+            onPopInvokedWithResult: (didPop, result) {
+              if (!didPop) {
+                _onWillPop().then((shouldPop) {
+                  if (shouldPop && context.mounted) Navigator.of(context).pop();
+                });
+              }
+            },
+            child: IconButton(
+              icon: const Icon(Icons.arrow_back),
+              onPressed: () async {
+                final shouldPop = await _onWillPop();
+                if (shouldPop && context.mounted) {
+                  Navigator.pop(context);
+                }
+              },
+            ),
+          ),
           actions: [
             if (_currentStep == 3) // Preview button on last step
               TextButton.icon(
@@ -215,7 +237,9 @@ class _ListingEditorScreenState extends State<ListingEditorScreen> {
                           color: Colors.white,
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black.withOpacity(0.05),
+                              color: Colors.black.withAlpha(
+                                13,
+                              ), // equivalent to opacity 0.05
                               blurRadius: 10,
                               offset: const Offset(0, -5),
                             ),
@@ -778,7 +802,9 @@ class _ListingEditorScreenState extends State<ListingEditorScreen> {
                       child: Container(
                         padding: const EdgeInsets.all(4),
                         decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.8),
+                          color: Colors.white.withAlpha(
+                            204,
+                          ), // equivalent to opacity 0.8
                           shape: BoxShape.circle,
                         ),
                         child: const Icon(

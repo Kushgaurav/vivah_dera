@@ -380,7 +380,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     Container(
                       padding: const EdgeInsets.all(20),
                       decoration: BoxDecoration(
-                        color: Theme.of(context).primaryColor.withOpacity(0.1),
+                        color: Theme.of(context).primaryColor.withAlpha(
+                          25,
+                        ), // equivalent to opacity 0.1
                       ),
                       child: Column(
                         children: [
@@ -654,7 +656,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 16),
         decoration: BoxDecoration(
-          border: Border.all(color: Colors.grey.withOpacity(0.2)),
+          border: Border.all(
+            color: Colors.grey.withAlpha(51),
+          ), // equivalent to opacity 0.2
           borderRadius: BorderRadius.circular(12),
         ),
         child: Column(

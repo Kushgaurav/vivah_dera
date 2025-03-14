@@ -25,15 +25,15 @@ every time you make a change to the code, you should update the code index file 
 
 #### Renter Flow
 - lib/screens/renter/renter_home_screen.dart: Main screen with bottom navigation, categories, and featured listings (implemented)
-- lib/screens/renter/search_screen.dart: Search with filters (price, category) and map/list toggle view (to be implemented)
+- lib/screens/renter/search_screen.dart: Search with filters (price, category) and map/list toggle view (implemented)
 - lib/screens/renter/listing_detail_screen.dart: Detailed venue information with gallery, tabs for overview, reviews and amenities (implemented)
-- lib/screens/renter/booking_screen.dart: Multi-step booking process (to be implemented)
-- lib/screens/renter/booking_confirmation_screen.dart: Confirmation after successful booking (to be implemented)
-- lib/screens/renter/bookings_screen.dart: List of user's bookings (to be implemented)
-- lib/screens/renter/booking_detail_screen.dart: Details of a specific booking (to be implemented)
+- lib/screens/renter/booking_screen.dart: Multi-step booking process (implemented)
+- lib/screens/renter/booking_confirmation_screen.dart: Confirmation after successful booking (implemented)
+- lib/screens/renter/bookings_screen.dart: List of user's bookings (implemented)
+- lib/screens/renter/booking_detail_screen.dart: Details of a specific booking (implemented)
 - lib/screens/renter/messages_screen.dart: List of conversations with property owners (implemented and shared with owner flow)
-- lib/screens/renter/chat_screen.dart: Individual chat interface (to be implemented)
-- lib/screens/renter/profile_screen.dart: User profile and settings management (to be implemented)
+- lib/screens/renter/chat_screen.dart: Individual chat interface (implemented)
+- lib/screens/renter/profile_screen.dart: User profile and settings management (implemented)
 
 #### Owner Flow
 - lib/screens/owner/owner_dashboard_screen.dart: Main dashboard for property owners (implemented with 5 pages and bottom navigation)

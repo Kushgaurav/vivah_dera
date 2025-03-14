@@ -459,17 +459,21 @@ class _OwnerCalendarScreenState extends State<OwnerCalendarScreen> {
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(12),
                                     side: BorderSide(
-                                      color: _getEventColor(
-                                        event.type,
-                                      ).withOpacity(0.5),
+                                      color: Theme.of(
+                                        context,
+                                      ).primaryColor.withAlpha(
+                                        128,
+                                      ), // equivalent to opacity 0.5
                                       width: 1,
                                     ),
                                   ),
                                   child: ListTile(
                                     leading: CircleAvatar(
-                                      backgroundColor: _getEventColor(
-                                        event.type,
-                                      ).withOpacity(0.2),
+                                      backgroundColor: Theme.of(
+                                        context,
+                                      ).primaryColor.withAlpha(
+                                        51,
+                                      ), // equivalent to opacity 0.2
                                       child: Icon(
                                         event.type == EventType.booking
                                             ? Icons.calendar_today

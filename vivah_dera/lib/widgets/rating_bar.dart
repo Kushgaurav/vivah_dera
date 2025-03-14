@@ -8,13 +8,13 @@ class RatingBar extends StatelessWidget {
   final TextStyle? textStyle;
 
   const RatingBar({
-    Key? key,
+    super.key,
     required this.rating,
     this.size = 24,
     this.color,
     this.showText = false,
     this.textStyle,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -41,10 +41,9 @@ class RatingBar extends StatelessWidget {
           const SizedBox(width: 4),
           Text(
             rating.toStringAsFixed(1),
-            style: textStyle ?? TextStyle(
-              fontSize: size * 0.6,
-              fontWeight: FontWeight.bold,
-            ),
+            style:
+                textStyle ??
+                TextStyle(fontSize: size * 0.6, fontWeight: FontWeight.bold),
           ),
         ],
       ],

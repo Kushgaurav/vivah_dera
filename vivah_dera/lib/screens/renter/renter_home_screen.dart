@@ -2,13 +2,13 @@ import 'package:flutter/material.dart';
 import '../../widgets/property_card.dart';
 
 class RenterHomeScreen extends StatefulWidget {
-  const RenterHomeScreen({Key? key}) : super(key: key);
+  const RenterHomeScreen({super.key});
 
   @override
-  _RenterHomeScreenState createState() => _RenterHomeScreenState();
+  State<RenterHomeScreen> createState() => RenterHomeScreenState();
 }
 
-class _RenterHomeScreenState extends State<RenterHomeScreen> {
+class RenterHomeScreenState extends State<RenterHomeScreen> {
   int _currentIndex = 0;
   final List<String> _categories = [
     'All',
@@ -17,7 +17,7 @@ class _RenterHomeScreenState extends State<RenterHomeScreen> {
     'Corporate',
     'Engagement',
     'Parties',
-    'Conference'
+    'Conference',
   ];
   int _selectedCategoryIndex = 0;
   final List<Map<String, dynamic>> _mockProperties = [
@@ -132,7 +132,8 @@ class _RenterHomeScreenState extends State<RenterHomeScreen> {
               children: [
                 CircleAvatar(
                   backgroundImage: NetworkImage(
-                      'https://source.unsplash.com/random/100x100?person'),
+                    'https://source.unsplash.com/random/100x100?person',
+                  ),
                 ),
                 const SizedBox(width: 10),
                 Column(
@@ -154,7 +155,7 @@ class _RenterHomeScreenState extends State<RenterHomeScreen> {
               IconButton(
                 icon: const Icon(Icons.notifications_outlined),
                 onPressed: () {
-                  // TODO: Navigate to notifications
+                  Navigator.pushNamed(context, '/notifications');
                 },
               ),
             ],
@@ -178,16 +179,14 @@ class _RenterHomeScreenState extends State<RenterHomeScreen> {
                       fillColor: Colors.grey[200],
                       contentPadding: const EdgeInsets.symmetric(vertical: 0),
                     ),
+                    readOnly: true,
                     onTap: () {
-                      // TODO: Navigate to search page
-                      setState(() {
-                        _currentIndex = 1;
-                      });
+                      Navigator.pushNamed(context, '/search');
                     },
                   ),
-                  
+
                   const SizedBox(height: 20),
-                  
+
                   // Category selector
                   Text(
                     'Categories',
@@ -229,8 +228,9 @@ class _RenterHomeScreenState extends State<RenterHomeScreen> {
                           _categories[index],
                           style: TextStyle(
                             color: isSelected ? Colors.white : Colors.black,
-                            fontWeight:
-                                isSelected ? FontWeight.bold : FontWeight.normal,
+                            fontWeight: isSelected
+                                ? FontWeight.bold
+                                : FontWeight.normal,
                           ),
                         ),
                       ),
@@ -266,33 +266,30 @@ class _RenterHomeScreenState extends State<RenterHomeScreen> {
                 crossAxisSpacing: 10,
                 mainAxisSpacing: 10,
               ),
-              delegate: SliverChildBuilderDelegate(
-                (context, index) {
-                  final property = _mockProperties[index];
-                  return PropertyCard(
-                    imageUrl: property['imageUrl'],
-                    title: property['title'],
-                    location: property['location'],
-                    price: property['price'],
-                    rating: property['rating'],
-                    category: property['category'],
-                    isFavorite: property['isFavorite'],
-                    onTap: () {
-                      Navigator.pushNamed(
-                        context,
-                        '/listing_detail',
-                        arguments: property,
-                      );
-                    },
-                    onFavoriteToggle: (isFavorite) {
-                      setState(() {
-                        _mockProperties[index]['isFavorite'] = isFavorite;
-                      });
-                    },
-                  );
-                },
-                childCount: _mockProperties.length,
-              ),
+              delegate: SliverChildBuilderDelegate((context, index) {
+                final property = _mockProperties[index];
+                return PropertyCard(
+                  imageUrl: property['imageUrl'],
+                  title: property['title'],
+                  location: property['location'],
+                  price: property['price'],
+                  rating: property['rating'],
+                  category: property['category'],
+                  isFavorite: property['isFavorite'],
+                  onTap: () {
+                    Navigator.pushNamed(
+                      context,
+                      '/listing_detail',
+                      arguments: property,
+                    );
+                  },
+                  onFavoriteToggle: (isFavorite) {
+                    setState(() {
+                      _mockProperties[index]['isFavorite'] = isFavorite;
+                    });
+                  },
+                );
+              }, childCount: _mockProperties.length),
             ),
           ),
           SliverToBoxAdapter(

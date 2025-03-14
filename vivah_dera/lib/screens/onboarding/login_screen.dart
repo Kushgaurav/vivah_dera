@@ -1,18 +1,22 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import '../../services/auth_service.dart';
 
 class LoginScreen extends StatefulWidget {
-  const LoginScreen({Key? key}) : super(key: key);
+  const LoginScreen({super.key});
 
   @override
-  _LoginScreenState createState() => _LoginScreenState();
+  State<LoginScreen> createState() => LoginScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
+class LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _authService = AuthService();
   bool _isPasswordVisible = false;
   bool _rememberMe = false;
+  bool _isLoading = false;
 
   @override
   void dispose() {
@@ -21,10 +25,60 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
-  void _login() {
+  Future<void> _login() async {
     if (_formKey.currentState!.validate()) {
-      // TODO: Implement actual login logic with Firebase Auth
-      Navigator.pushReplacementNamed(context, '/renter_home');
+      setState(() {
+        _isLoading = true;
+      });
+
+      try {
+        await FirebaseAuth.instance.signInWithEmailAndPassword(
+          email: _emailController.text,
+          password: _passwordController.text,
+        );
+
+        if (mounted) {
+          Navigator.pushReplacementNamed(context, '/renter_home');
+        }
+      } on FirebaseAuthException catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(e.message ?? 'Login failed')),
+          );
+        }
+      } finally {
+        if (mounted) {
+          setState(() {
+            _isLoading = false;
+          });
+        }
+      }
+    }
+  }
+
+  Future<void> _handleSocialLogin(
+      Future<UserCredential> Function() signInMethod) async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      await signInMethod();
+      if (mounted) {
+        Navigator.pushReplacementNamed(context, '/renter_home');
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e.toString())),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
 
@@ -121,7 +175,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         const Spacer(),
                         TextButton(
                           onPressed: () {
-                            // TODO: Navigate to forgot password screen
+                            Navigator.pushNamed(context, '/forgot_password');
                           },
                           child: const Text('Forgot Password?'),
                         ),
@@ -132,13 +186,15 @@ class _LoginScreenState extends State<LoginScreen> {
                       width: double.infinity,
                       height: 50,
                       child: ElevatedButton(
-                        onPressed: _login,
+                        onPressed: _isLoading ? null : _login,
                         style: ElevatedButton.styleFrom(
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),
                         ),
-                        child: const Text('Sign In'),
+                        child: _isLoading
+                            ? const CircularProgressIndicator()
+                            : const Text('Sign In'),
                       ),
                     ),
                   ],
@@ -147,7 +203,7 @@ class _LoginScreenState extends State<LoginScreen> {
               const SizedBox(height: 32),
               Row(
                 children: [
-                  Expanded(child: Divider()),
+                  const Expanded(child: Divider()),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16.0),
                     child: Text(
@@ -155,7 +211,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       style: TextStyle(color: Colors.grey[600]),
                     ),
                   ),
-                  Expanded(child: Divider()),
+                  const Expanded(child: Divider()),
                 ],
               ),
               const SizedBox(height: 24),
@@ -165,22 +221,20 @@ class _LoginScreenState extends State<LoginScreen> {
                   _socialLoginButton(
                     icon: Icons.g_mobiledata_rounded,
                     color: Colors.red,
-                    onPressed: () {
-                      // TODO: Implement Google sign in
-                    },
+                    onPressed: () =>
+                        _handleSocialLogin(_authService.signInWithGoogle),
                   ),
                   _socialLoginButton(
                     icon: Icons.facebook,
                     color: Colors.blue,
-                    onPressed: () {
-                      // TODO: Implement Facebook sign in
-                    },
+                    onPressed: () =>
+                        _handleSocialLogin(_authService.signInWithFacebook),
                   ),
                   _socialLoginButton(
                     icon: Icons.phone,
                     color: Colors.green,
                     onPressed: () {
-                      // TODO: Navigate to phone sign in
+                      Navigator.pushNamed(context, '/phone_auth');
                     },
                   ),
                 ],

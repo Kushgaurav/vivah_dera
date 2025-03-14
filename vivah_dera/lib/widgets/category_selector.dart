@@ -8,19 +8,19 @@ class CategorySelector extends StatefulWidget {
   final double height;
 
   const CategorySelector({
-    Key? key,
+    super.key,
     required this.categories,
     required this.onCategorySelected,
     this.initialSelectedIndex = 0,
     this.padding = const EdgeInsets.symmetric(horizontal: 16.0),
     this.height = 50.0,
-  }) : super(key: key);
+  });
 
   @override
-  _CategorySelectorState createState() => _CategorySelectorState();
+  State<CategorySelector> createState() => CategorySelectorState();
 }
 
-class _CategorySelectorState extends State<CategorySelector> {
+class CategorySelectorState extends State<CategorySelector> {
   late int _selectedIndex;
 
   @override
@@ -50,9 +50,10 @@ class _CategorySelectorState extends State<CategorySelector> {
               margin: const EdgeInsets.only(right: 10),
               padding: const EdgeInsets.symmetric(horizontal: 16),
               decoration: BoxDecoration(
-                color: isSelected
-                    ? Theme.of(context).primaryColor
-                    : Colors.grey[200],
+                color:
+                    isSelected
+                        ? Theme.of(context).primaryColor
+                        : Colors.grey[200],
                 borderRadius: BorderRadius.circular(20),
               ),
               child: Center(

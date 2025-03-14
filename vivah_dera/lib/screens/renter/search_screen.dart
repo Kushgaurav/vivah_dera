@@ -53,11 +53,7 @@ class _SearchScreenState extends State<SearchScreen>
                     hintText: 'Search for venues...',
                     border: InputBorder.none,
                   ),
-                  onSubmitted: (value) {
-                    setState(() {
-                      _isSearching = false;
-                    });
-                  },
+                  onSubmitted: _onSearchSubmitted,
                 )
                 : const Text('Search'),
         actions: [
@@ -158,11 +154,7 @@ class _SearchScreenState extends State<SearchScreen>
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton(
-                        onPressed: () {
-                          setState(() {
-                            _isFilterVisible = false;
-                          });
-                        },
+                        onPressed: _applyFilters,
                         child: const Text('Apply Filters'),
                       ),
                     ),
@@ -189,15 +181,14 @@ class _SearchScreenState extends State<SearchScreen>
                             'https://source.unsplash.com/random/300x200?venue&sig=$index',
                         title: 'Venue Name ${index + 1}',
                         location: 'Location ${index + 1}',
-                        price: '₹${20000 + (index * 5000)}',
+                        price: 20000 + (index * 5000),
                         rating: 4.0 + (index % 10) / 10,
+                        category: _selectedCategory,
                         onTap: () {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder:
-                                  (context) =>
-                                      ListingDetailScreen(id: 'search-$index'),
+                              builder: (context) => const ListingDetailScreen(),
                             ),
                           );
                         },
@@ -232,5 +223,17 @@ class _SearchScreenState extends State<SearchScreen>
         ],
       ),
     );
+  }
+
+  void _onSearchSubmitted(String value) {
+    setState(() {
+      _isSearching = false;
+    });
+  }
+
+  void _applyFilters() {
+    setState(() {
+      _isFilterVisible = false;
+    });
   }
 }

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../../themes/app_theme.dart';
 
 class WelcomeScreen extends StatelessWidget {
-  const WelcomeScreen({Key? key}) : super(key: key);
+  const WelcomeScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -22,7 +22,9 @@ class WelcomeScreen extends StatelessWidget {
                 width: isSmallScreen ? 120 : 160,
                 height: isSmallScreen ? 120 : 160,
                 decoration: BoxDecoration(
-                  color: AppTheme.primaryColor.withOpacity(0.1),
+                  color: AppTheme.primaryColor.withAlpha(
+                    25,
+                  ), // equivalent to opacity 0.1
                   borderRadius: BorderRadius.circular(24),
                 ),
                 child: Icon(
@@ -37,7 +39,7 @@ class WelcomeScreen extends StatelessWidget {
               Text(
                 'Welcome to Vivah Dera',
                 style: AppTheme.heading1TextStyle.copyWith(
-                  color: Theme.of(context).colorScheme.onBackground,
+                  color: Theme.of(context).colorScheme.onSurface,
                 ),
                 textAlign: TextAlign.center,
               ),
@@ -49,9 +51,9 @@ class WelcomeScreen extends StatelessWidget {
                 child: Text(
                   'Your one-stop solution for finding and managing tent houses and event spaces',
                   style: AppTheme.body1TextStyle.copyWith(
-                    color: Theme.of(
-                      context,
-                    ).colorScheme.onBackground.withOpacity(0.7),
+                    color: Theme.of(context).colorScheme.onSurface.withAlpha(
+                      179,
+                    ), // equivalent to opacity 0.7
                   ),
                   textAlign: TextAlign.center,
                 ),

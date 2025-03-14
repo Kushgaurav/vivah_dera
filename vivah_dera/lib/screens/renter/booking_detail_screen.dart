@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:vivah_dera/screens/renter/chat_screen.dart';
+import 'package:flutter/services.dart';
 
 class BookingDetailScreen extends StatefulWidget {
   final String bookingId;
@@ -12,57 +12,510 @@ class BookingDetailScreen extends StatefulWidget {
 
 class _BookingDetailScreenState extends State<BookingDetailScreen> {
   bool _isLoading = true;
-  Map<String, dynamic> _booking = {};
+  Map<String, dynamic> _bookingData = {};
 
   @override
   void initState() {
     super.initState();
-    _loadBookingDetails();
+    _loadBookingData();
   }
 
-  void _loadBookingDetails() {
-    // Simulate loading booking details
-    Future.delayed(const Duration(milliseconds: 1500), () {
+  void _loadBookingData() {
+    // Simulate fetching booking data from an API
+    Future.delayed(const Duration(seconds: 1), () {
       if (!mounted) return;
 
       setState(() {
         // Mock data for the booking
-        _booking = {
+        _bookingData = {
           'id': widget.bookingId,
-          'venueName': 'Royal Wedding Hall',
-          'venueImage':
-              'https://source.unsplash.com/random/800x600?wedding,venue&sig=1',
-          'location': 'Sector 28, Delhi',
-          'startDate': DateTime.now().add(const Duration(days: 15)),
-          'endDate': DateTime.now().add(const Duration(days: 16)),
-          'status': 'upcoming', // upcoming, completed, canceled
-          'totalAmount': '₹85,000',
-          'advanceAmount': '₹20,000',
-          'remainingAmount': '₹65,000',
-          'guestCount': 250,
-          'eventType': 'Wedding',
-          'specialRequests':
-              'Need stage decoration and extra lighting for the venue.',
-          'createdAt': DateTime.now().subtract(const Duration(days: 5)),
-          'paymentMethod': 'UPI',
-          'transactionId': 'TXN123456789',
-          'owner': {
-            'name': 'Aman Singh',
-            'image':
-                'https://source.unsplash.com/random/100x100?portrait&sig=1',
-            'phone': '+91 98765 43210',
-            'responseRate': '95%',
-            'verified': true,
+          'venue': {
+            'name': 'Royal Wedding Hall',
+            'image': 'https://source.unsplash.com/random/300x200?wedding,venue',
+            'location': 'Sector 18, Chandigarh',
+            'phone': '+91 9876543210',
           },
+          'status': _getStatusFromId(widget.bookingId),
+          'booking_date': DateTime.now().subtract(const Duration(days: 5)),
+          'event_date': DateTime.now().add(const Duration(days: 15)),
+          'event_type': 'Wedding Ceremony',
+          'guest_count': 200,
+          'price_details': {
+            'base_price': 45000,
+            'additional_services': 25000,
+            'discount': 5000,
+            'taxes': 13000,
+            'total': 78000,
+          },
+          'time_slot': 'Full Day',
+          'additional_services': [
+            {'name': 'Catering', 'price': 15000},
+            {'name': 'Decoration', 'price': 10000},
+          ],
+          'special_requests':
+              'Please arrange for a wedding cake display table near the entrance.',
+          'payment_status': 'Paid',
+          'payment_method': 'Online Payment',
+          'payment_id': 'PAY123456789',
         };
-
         _isLoading = false;
       });
     });
   }
 
+  String _getStatusFromId(String id) {
+    // For demo purposes, determine status based on booking ID
+    final hashCode = id.hashCode;
+    if (hashCode % 3 == 0) return 'upcoming';
+    if (hashCode % 3 == 1) return 'completed';
+    return 'canceled';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text('Booking ${widget.bookingId}')),
+      body:
+          _isLoading
+              ? const Center(child: CircularProgressIndicator())
+              : _buildBookingDetails(),
+    );
+  }
+
+  Widget _buildBookingDetails() {
+    final status = _bookingData['status'];
+    final statusColor = _getStatusColor(status);
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Status Card
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: statusColor.withAlpha(25), // equivalent to opacity 0.1
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: statusColor.withAlpha(76),
+              ), // equivalent to opacity 0.3
+            ),
+            child: Column(
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(_getStatusIcon(status), color: statusColor),
+                    const SizedBox(width: 8),
+                    Text(
+                      _formatStatus(status),
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: statusColor,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                if (status == 'upcoming')
+                  Text(
+                    'Your booking is confirmed for ${_formatDate(_bookingData['event_date'])}',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(color: statusColor),
+                  )
+                else if (status == 'completed')
+                  const Text(
+                    'Thank you for using our services!',
+                    textAlign: TextAlign.center,
+                  )
+                else
+                  const Text(
+                    'This booking has been canceled.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(color: Colors.red),
+                  ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 24),
+
+          // Booking ID
+          _buildSectionHeader('Booking Information'),
+          _buildInfoCard([
+            _buildDetailRow('Booking ID', widget.bookingId, copyable: true),
+            _buildDetailRow(
+              'Booked On',
+              _formatDate(_bookingData['booking_date']),
+            ),
+            _buildDetailRow(
+              'Event Date',
+              _formatDate(_bookingData['event_date']),
+            ),
+            _buildDetailRow('Event Type', _bookingData['event_type']),
+            _buildDetailRow('Time Slot', _bookingData['time_slot']),
+            _buildDetailRow(
+              'Guest Count',
+              '${_bookingData['guest_count']} people',
+            ),
+          ]),
+          const SizedBox(height: 24),
+
+          // Venue Details
+          _buildSectionHeader('Venue Details'),
+          _buildVenueCard(),
+          const SizedBox(height: 24),
+
+          // Price Details
+          _buildSectionHeader('Price Details'),
+          _buildPriceDetailsCard(),
+          const SizedBox(height: 24),
+
+          // Payment Information
+          _buildSectionHeader('Payment Information'),
+          _buildInfoCard([
+            _buildDetailRow('Payment Status', _bookingData['payment_status']),
+            _buildDetailRow('Payment Method', _bookingData['payment_method']),
+            _buildDetailRow('Payment ID', _bookingData['payment_id']),
+          ]),
+          const SizedBox(height: 24),
+
+          // Special Requests
+          _buildSectionHeader('Special Requests'),
+          _buildInfoCard([
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8.0),
+              child: Text(
+                _bookingData['special_requests'] ?? 'No special requests',
+              ),
+            ),
+          ]),
+          const SizedBox(height: 32),
+
+          // Action Buttons
+          if (status == 'upcoming') _buildActionButtons(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSectionHeader(String title) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12.0),
+      child: Text(
+        title,
+        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+      ),
+    );
+  }
+
+  Widget _buildInfoCard(List<Widget> children) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.grey.shade300),
+      ),
+      child: Column(children: children),
+    );
+  }
+
+  Widget _buildVenueCard() {
+    final venueData = _bookingData['venue'] as Map<String, dynamic>;
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.grey.shade300),
+      ),
+      child: Row(
+        children: [
+          // Venue Image
+          ClipRRect(
+            borderRadius: BorderRadius.circular(8),
+            child: Image.network(
+              venueData['image'],
+              width: 80,
+              height: 80,
+              fit: BoxFit.cover,
+            ),
+          ),
+          const SizedBox(width: 16),
+          // Venue Details
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  venueData['name'],
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  venueData['location'],
+                  style: TextStyle(color: Colors.grey[600]),
+                ),
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    Icon(Icons.phone, size: 16, color: Colors.grey[600]),
+                    const SizedBox(width: 4),
+                    Text(venueData['phone']),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPriceDetailsCard() {
+    final priceDetails = _bookingData['price_details'] as Map<String, dynamic>;
+    final additionalServices =
+        _bookingData['additional_services'] as List<dynamic>;
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.grey.shade300),
+      ),
+      child: Column(
+        children: [
+          _buildDetailRow('Base Price', '₹${priceDetails['base_price']}'),
+          if (additionalServices.isNotEmpty) const SizedBox(height: 8),
+          if (additionalServices.isNotEmpty)
+            ...additionalServices.map(
+              (service) =>
+                  _buildDetailRow(service['name'], '₹${service['price']}'),
+            ),
+          if (priceDetails['discount'] > 0) ...[
+            const SizedBox(height: 8),
+            _buildDetailRow(
+              'Discount',
+              '-₹${priceDetails['discount']}',
+              valueColor: Colors.green,
+            ),
+          ],
+          const SizedBox(height: 8),
+          _buildDetailRow('Taxes & Fees', '₹${priceDetails['taxes']}'),
+          const Padding(
+            padding: EdgeInsets.symmetric(vertical: 8.0),
+            child: Divider(),
+          ),
+          _buildDetailRow(
+            'Total Amount',
+            '₹${priceDetails['total']}',
+            isBold: true,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDetailRow(
+    String label,
+    String value, {
+    bool isBold = false,
+    bool copyable = false,
+    Color? valueColor,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(label, style: const TextStyle(color: Colors.grey)),
+          Row(
+            children: [
+              Text(
+                value,
+                style: TextStyle(
+                  fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
+                  color: valueColor,
+                ),
+              ),
+              if (copyable)
+                IconButton(
+                  icon: const Icon(Icons.copy, size: 16),
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(),
+                  onPressed: () {
+                    Clipboard.setData(ClipboardData(text: value));
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Copied to clipboard'),
+                        duration: Duration(seconds: 1),
+                      ),
+                    );
+                  },
+                ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildActionButtons() {
+    return Column(
+      children: [
+        ElevatedButton.icon(
+          onPressed: () {
+            // Navigate to chat with venue owner
+            Navigator.pushNamed(
+              context,
+              '/chat',
+              arguments: {
+                'conversationId': 'booking_${widget.bookingId}',
+                'owner': {
+                  'name': 'Aman Singh',
+                  'image': 'https://source.unsplash.com/random/100x100?person',
+                },
+                'propertyName': _bookingData['venue']['name'],
+              },
+            );
+          },
+          icon: const Icon(Icons.message),
+          label: const Text('Message Host'),
+          style: ElevatedButton.styleFrom(
+            minimumSize: const Size(double.infinity, 45),
+          ),
+        ),
+        const SizedBox(height: 12),
+        OutlinedButton.icon(
+          onPressed: () {
+            _showCancelConfirmationDialog();
+          },
+          icon: const Icon(Icons.cancel),
+          label: const Text('Cancel Booking'),
+          style: OutlinedButton.styleFrom(
+            minimumSize: const Size(double.infinity, 45),
+            foregroundColor: Colors.red,
+            side: const BorderSide(color: Colors.red),
+          ),
+        ),
+      ],
+    );
+  }
+
+  void _showCancelConfirmationDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Cancel Booking?'),
+          content: const Text(
+            'Are you sure you want to cancel this booking? This action cannot be undone.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: const Text('No, Keep It'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+                _processCancellation();
+              },
+              child: const Text(
+                'Yes, Cancel',
+                style: TextStyle(color: Colors.red),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _processCancellation() {
+    // Show loading indicator
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return const Dialog(
+          child: Padding(
+            padding: EdgeInsets.all(20.0),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                CircularProgressIndicator(),
+                SizedBox(width: 20),
+                Text("Processing cancellation..."),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+
+    // Simulate API call with delay
+    Future.delayed(const Duration(seconds: 2), () {
+      if (!mounted) return;
+
+      // Close the loading dialog
+      Navigator.of(context).pop();
+
+      // Update the UI
+      setState(() {
+        _bookingData['status'] = 'canceled';
+      });
+
+      // Show success message
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Booking has been canceled successfully'),
+          backgroundColor: Colors.green,
+        ),
+      );
+    });
+  }
+
   String _formatDate(DateTime date) {
-    return "${date.day}/${date.month}/${date.year}";
+    return '${date.day}/${date.month}/${date.year}';
+  }
+
+  String _formatStatus(String status) {
+    switch (status) {
+      case 'upcoming':
+        return 'Upcoming';
+      case 'completed':
+        return 'Completed';
+      case 'canceled':
+        return 'Canceled';
+      default:
+        return 'Unknown';
+    }
+  }
+
+  IconData _getStatusIcon(String status) {
+    switch (status) {
+      case 'upcoming':
+        return Icons.event;
+      case 'completed':
+        return Icons.check_circle;
+      case 'canceled':
+        return Icons.cancel;
+      default:
+        return Icons.help;
+    }
   }
 
   Color _getStatusColor(String status) {
@@ -76,475 +529,5 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
       default:
         return Colors.grey;
     }
-  }
-
-  void _showCancelDialog() {
-    showDialog(
-      context: context,
-      builder:
-          (context) => AlertDialog(
-            title: const Text('Cancel Booking'),
-            content: const Text(
-              'Are you sure you want to cancel this booking? Cancellation fees may apply based on venue policy.',
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text('No, Keep It'),
-              ),
-              ElevatedButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                  // Show cancellation in progress
-                  _processCancellation();
-                },
-                style: ElevatedButton.styleFrom(
-                  foregroundColor: Colors.white,
-                  backgroundColor: Colors.red,
-                ),
-                child: const Text('Yes, Cancel'),
-              ),
-            ],
-          ),
-    );
-  }
-
-  void _processCancellation() {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder:
-          (context) => const AlertDialog(
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                CircularProgressIndicator(),
-                SizedBox(height: 16),
-                Text('Processing your cancellation...'),
-              ],
-            ),
-          ),
-    );
-
-    // Simulate API call for cancellation
-    Future.delayed(const Duration(seconds: 2), () {
-      Navigator.pop(context); // Close progress dialog
-
-      setState(() {
-        _booking['status'] = 'canceled';
-      });
-
-      // Show success message
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Your booking has been cancelled successfully'),
-          backgroundColor: Colors.red,
-        ),
-      );
-    });
-  }
-
-  void _shareBookingDetails() {
-    // Share booking details functionality would be implemented here
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Sharing functionality coming soon')),
-    );
-  }
-
-  void _downloadTicket() {
-    // In a real app, this would generate a PDF and download it
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Generating booking voucher...')),
-    );
-  }
-
-  void _contactHost() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder:
-            (context) => ChatScreen(
-              conversationId: 'conv-${_booking['owner']['name']}',
-              owner: _booking['owner'],
-              propertyName: _booking['venueName'],
-            ),
-      ),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Booking ${widget.bookingId}'),
-        actions: [
-          if (!_isLoading)
-            IconButton(
-              icon: const Icon(Icons.share),
-              onPressed: _shareBookingDetails,
-            ),
-        ],
-      ),
-      body:
-          _isLoading
-              ? const Center(child: CircularProgressIndicator())
-              : SingleChildScrollView(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Banner image with status overlay
-                    Stack(
-                      children: [
-                        Image.network(
-                          _booking['venueImage'],
-                          height: 200,
-                          width: double.infinity,
-                          fit: BoxFit.cover,
-                        ),
-                        Positioned(
-                          bottom: 0,
-                          left: 0,
-                          right: 0,
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(vertical: 8),
-                            color: Colors.black.withOpacity(0.6),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 16,
-                                    vertical: 6,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: _getStatusColor(
-                                      _booking['status'],
-                                    ).withOpacity(0.2),
-                                    borderRadius: BorderRadius.circular(20),
-                                  ),
-                                  child: Text(
-                                    _booking['status'].toUpperCase(),
-                                    style: TextStyle(
-                                      color: _getStatusColor(
-                                        _booking['status'],
-                                      ),
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-
-                    // Booking details
-                    Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          // Venue name and location
-                          Text(
-                            _booking['venueName'],
-                            style: Theme.of(context).textTheme.titleLarge
-                                ?.copyWith(fontWeight: FontWeight.bold),
-                          ),
-                          const SizedBox(height: 4),
-                          Row(
-                            children: [
-                              const Icon(Icons.location_on, size: 16),
-                              const SizedBox(width: 4),
-                              Text(_booking['location']),
-                            ],
-                          ),
-                          const SizedBox(height: 24),
-
-                          // Booking ID section
-                          _buildSectionTitle('Booking Information'),
-                          _buildDetailItem(
-                            icon: Icons.confirmation_number,
-                            title: 'Booking ID',
-                            value: _booking['id'],
-                          ),
-                          _buildDetailItem(
-                            icon: Icons.calendar_today,
-                            title: 'Event Date',
-                            value:
-                                _booking['startDate'] == _booking['endDate']
-                                    ? _formatDate(_booking['startDate'])
-                                    : '${_formatDate(_booking['startDate'])} - ${_formatDate(_booking['endDate'])}',
-                          ),
-                          _buildDetailItem(
-                            icon: Icons.event,
-                            title: 'Event Type',
-                            value: _booking['eventType'],
-                          ),
-                          _buildDetailItem(
-                            icon: Icons.people,
-                            title: 'Guest Count',
-                            value: '${_booking['guestCount']} guests',
-                          ),
-                          _buildDetailItem(
-                            icon: Icons.access_time,
-                            title: 'Booked On',
-                            value: _formatDate(_booking['createdAt']),
-                          ),
-                          const SizedBox(height: 24),
-
-                          // Payment info
-                          _buildSectionTitle('Payment Information'),
-                          _buildDetailItem(
-                            icon: Icons.payment,
-                            title: 'Total Amount',
-                            value: _booking['totalAmount'],
-                            valueColor: Theme.of(context).colorScheme.primary,
-                            valueBold: true,
-                          ),
-                          _buildDetailItem(
-                            icon: Icons.check_circle,
-                            title: 'Advance Paid',
-                            value: _booking['advanceAmount'],
-                            valueColor: Colors.green,
-                          ),
-                          if (_booking['status'] == 'upcoming')
-                            _buildDetailItem(
-                              icon: Icons.pending,
-                              title: 'Balance Due',
-                              value: _booking['remainingAmount'],
-                              valueColor: Colors.orange,
-                            ),
-                          _buildDetailItem(
-                            icon: Icons.credit_card,
-                            title: 'Payment Method',
-                            value: _booking['paymentMethod'],
-                          ),
-                          _buildDetailItem(
-                            icon: Icons.receipt_long,
-                            title: 'Transaction ID',
-                            value: _booking['transactionId'],
-                          ),
-                          const SizedBox(height: 24),
-
-                          // Special requests
-                          _buildSectionTitle('Special Requests'),
-                          Container(
-                            padding: const EdgeInsets.all(12),
-                            width: double.infinity,
-                            decoration: BoxDecoration(
-                              color: Colors.grey.shade100,
-                              borderRadius: BorderRadius.circular(8),
-                              border: Border.all(color: Colors.grey.shade300),
-                            ),
-                            child: Text(_booking['specialRequests']),
-                          ),
-                          const SizedBox(height: 24),
-
-                          // Host information
-                          _buildSectionTitle('Host Information'),
-                          ListTile(
-                            contentPadding: EdgeInsets.zero,
-                            leading: CircleAvatar(
-                              backgroundImage: NetworkImage(
-                                _booking['owner']['image'],
-                              ),
-                            ),
-                            title: Row(
-                              children: [
-                                Text(_booking['owner']['name']),
-                                if (_booking['owner']['verified'])
-                                  Padding(
-                                    padding: const EdgeInsets.only(left: 4.0),
-                                    child: Icon(
-                                      Icons.verified,
-                                      size: 16,
-                                      color:
-                                          Theme.of(context).colorScheme.primary,
-                                    ),
-                                  ),
-                              ],
-                            ),
-                            subtitle: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const SizedBox(height: 4),
-                                Text(
-                                  'Response Rate: ${_booking['owner']['responseRate']}',
-                                ),
-                                Text('Phone: ${_booking['owner']['phone']}'),
-                              ],
-                            ),
-                            trailing: ElevatedButton(
-                              onPressed: _contactHost,
-                              child: const Text('Contact'),
-                            ),
-                          ),
-                          const SizedBox(height: 24),
-
-                          // Action buttons based on status
-                          if (_booking['status'] == 'upcoming') ...[
-                            ElevatedButton.icon(
-                              onPressed: _downloadTicket,
-                              icon: const Icon(Icons.download),
-                              label: const Text('Download Booking Voucher'),
-                              style: ElevatedButton.styleFrom(
-                                foregroundColor: Colors.white,
-                                backgroundColor:
-                                    Theme.of(context).colorScheme.primary,
-                                minimumSize: const Size(double.infinity, 45),
-                              ),
-                            ),
-                            const SizedBox(height: 16),
-                            OutlinedButton.icon(
-                              onPressed: _showCancelDialog,
-                              icon: const Icon(Icons.cancel, color: Colors.red),
-                              label: const Text('Cancel Booking'),
-                              style: OutlinedButton.styleFrom(
-                                foregroundColor: Colors.red,
-                                side: const BorderSide(color: Colors.red),
-                                minimumSize: const Size(double.infinity, 45),
-                              ),
-                            ),
-                          ] else if (_booking['status'] == 'completed') ...[
-                            ElevatedButton.icon(
-                              onPressed: _downloadTicket,
-                              icon: const Icon(Icons.download),
-                              label: const Text('Download Receipt'),
-                              style: ElevatedButton.styleFrom(
-                                foregroundColor: Colors.white,
-                                backgroundColor:
-                                    Theme.of(context).colorScheme.primary,
-                                minimumSize: const Size(double.infinity, 45),
-                              ),
-                            ),
-                            const SizedBox(height: 16),
-                            OutlinedButton.icon(
-                              onPressed: () {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text('Review feature coming soon'),
-                                  ),
-                                );
-                              },
-                              icon: const Icon(Icons.star),
-                              label: const Text('Write a Review'),
-                              style: OutlinedButton.styleFrom(
-                                minimumSize: const Size(double.infinity, 45),
-                              ),
-                            ),
-                          ] else if (_booking['status'] == 'canceled') ...[
-                            OutlinedButton.icon(
-                              onPressed: () {
-                                // Navigate to similar venues
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text(
-                                      'Similar venues feature coming soon',
-                                    ),
-                                  ),
-                                );
-                              },
-                              icon: const Icon(Icons.search),
-                              label: const Text('Find Similar Venues'),
-                              style: OutlinedButton.styleFrom(
-                                minimumSize: const Size(double.infinity, 45),
-                              ),
-                            ),
-                          ],
-
-                          const SizedBox(height: 32),
-
-                          // Cancellation policy
-                          if (_booking['status'] == 'upcoming')
-                            Container(
-                              padding: const EdgeInsets.all(16),
-                              decoration: BoxDecoration(
-                                color: Colors.orange.shade50,
-                                borderRadius: BorderRadius.circular(8),
-                                border: Border.all(
-                                  color: Colors.orange.shade200,
-                                ),
-                              ),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  const Row(
-                                    children: [
-                                      Icon(
-                                        Icons.info_outline,
-                                        color: Colors.orange,
-                                      ),
-                                      SizedBox(width: 8),
-                                      Text(
-                                        'Cancellation Policy',
-                                        style: TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          color: Colors.orange,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                  const SizedBox(height: 8),
-                                  Text(
-                                    '• Free cancellation up to 30 days before event\n'
-                                    '• 50% refund between 29-15 days before event\n'
-                                    '• No refund within 14 days of event',
-                                    style: TextStyle(
-                                      color: Colors.orange.shade900,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-    );
-  }
-
-  Widget _buildSectionTitle(String title) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12.0),
-      child: Text(
-        title,
-        style: TextStyle(
-          fontSize: 18,
-          fontWeight: FontWeight.bold,
-          color: Theme.of(context).colorScheme.secondary,
-        ),
-      ),
-    );
-  }
-
-  Widget _buildDetailItem({
-    required IconData icon,
-    required String title,
-    required String value,
-    Color? valueColor,
-    bool valueBold = false,
-  }) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12.0),
-      child: Row(
-        children: [
-          Icon(icon, size: 18, color: Colors.grey),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Text(title, style: TextStyle(color: Colors.grey.shade600)),
-          ),
-          Text(
-            value,
-            style: TextStyle(
-              fontWeight: valueBold ? FontWeight.bold : FontWeight.normal,
-              color: valueColor,
-            ),
-          ),
-        ],
-      ),
-    );
   }
 }

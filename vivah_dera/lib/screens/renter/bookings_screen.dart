@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:vivah_dera/screens/renter/booking_detail_screen.dart';
 
 class BookingsScreen extends StatefulWidget {
   const BookingsScreen({super.key});
@@ -151,7 +150,7 @@ class _BookingsScreenState extends State<BookingsScreen>
             ),
             const SizedBox(height: 16),
             Text(
-              'No ${status} bookings',
+              'No $status bookings',
               style: Theme.of(context).textTheme.titleLarge,
             ),
             const SizedBox(height: 8),
@@ -212,7 +211,9 @@ class _BookingsScreenState extends State<BookingsScreen>
                           vertical: 4,
                         ),
                         decoration: BoxDecoration(
-                          color: Colors.black.withOpacity(0.7),
+                          color: Colors.black.withAlpha(
+                            179,
+                          ), // equivalent to opacity 0.7
                           borderRadius: BorderRadius.circular(4),
                         ),
                         child: Text(

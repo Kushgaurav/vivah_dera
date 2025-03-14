@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:vivah_dera/screens/renter/chat_screen.dart';
 
 class MessagesScreen extends StatefulWidget {
   const MessagesScreen({super.key});

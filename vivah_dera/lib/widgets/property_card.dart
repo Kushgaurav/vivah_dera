@@ -4,7 +4,7 @@ class PropertyCard extends StatelessWidget {
   final String imageUrl;
   final String title;
   final String location;
-  final double price;
+  final dynamic price; // Changed to dynamic to accept both int and double
   final double rating;
   final String category;
   final VoidCallback onTap;
@@ -12,7 +12,7 @@ class PropertyCard extends StatelessWidget {
   final Function(bool)? onFavoriteToggle;
 
   const PropertyCard({
-    Key? key,
+    super.key,
     required this.imageUrl,
     required this.title,
     required this.location,
@@ -22,16 +22,14 @@ class PropertyCard extends StatelessWidget {
     required this.onTap,
     this.isFavorite = false,
     this.onFavoriteToggle,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
     return Card(
       clipBehavior: Clip.antiAlias,
       elevation: 2,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
       child: InkWell(
         onTap: onTap,
@@ -45,20 +43,22 @@ class PropertyCard extends StatelessWidget {
                   child: Image.network(
                     imageUrl,
                     fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) => Container(
-                      color: Colors.grey[300],
-                      child: const Icon(Icons.broken_image, size: 50),
-                    ),
+                    errorBuilder:
+                        (context, error, stackTrace) => Container(
+                          color: Colors.grey[300],
+                          child: const Icon(Icons.broken_image, size: 50),
+                        ),
                     loadingBuilder: (context, child, loadingProgress) {
                       if (loadingProgress == null) return child;
                       return Container(
                         color: Colors.grey[200],
                         child: Center(
                           child: CircularProgressIndicator(
-                            value: loadingProgress.expectedTotalBytes != null
-                                ? loadingProgress.cumulativeBytesLoaded /
-                                    loadingProgress.expectedTotalBytes!
-                                : null,
+                            value:
+                                loadingProgress.expectedTotalBytes != null
+                                    ? loadingProgress.cumulativeBytesLoaded /
+                                        loadingProgress.expectedTotalBytes!
+                                    : null,
                           ),
                         ),
                       );
@@ -71,20 +71,21 @@ class PropertyCard extends StatelessWidget {
                   child: Material(
                     color: Colors.transparent,
                     child: InkWell(
-                      onTap: onFavoriteToggle != null
-                          ? () => onFavoriteToggle!(!isFavorite)
-                          : null,
+                      onTap:
+                          onFavoriteToggle != null
+                              ? () => onFavoriteToggle!(!isFavorite)
+                              : null,
                       borderRadius: BorderRadius.circular(16),
                       child: Container(
                         padding: const EdgeInsets.all(6),
                         decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.8),
+                          color: Colors.white.withAlpha(
+                            204,
+                          ), // equivalent to opacity 0.8
                           shape: BoxShape.circle,
                         ),
                         child: Icon(
-                          isFavorite
-                              ? Icons.favorite
-                              : Icons.favorite_border,
+                          isFavorite ? Icons.favorite : Icons.favorite_border,
                           color: isFavorite ? Colors.red : Colors.grey,
                           size: 20,
                         ),
@@ -97,7 +98,9 @@ class PropertyCard extends StatelessWidget {
                   left: 8,
                   child: Container(
                     padding: const EdgeInsets.symmetric(
-                        horizontal: 8, vertical: 4),
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
                     decoration: BoxDecoration(
                       color: Theme.of(context).primaryColor,
                       borderRadius: BorderRadius.circular(12),
@@ -164,11 +167,7 @@ class PropertyCard extends StatelessWidget {
                       ),
                       Row(
                         children: [
-                          const Icon(
-                            Icons.star,
-                            size: 18,
-                            color: Colors.amber,
-                          ),
+                          const Icon(Icons.star, size: 18, color: Colors.amber),
                           const SizedBox(width: 2),
                           Text(
                             rating.toString(),

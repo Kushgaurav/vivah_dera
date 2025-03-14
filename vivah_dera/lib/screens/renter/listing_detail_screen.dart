@@ -1,339 +1,528 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class ListingDetailScreen extends StatefulWidget {
-  const ListingDetailScreen({Key? key}) : super(key: key);
+  const ListingDetailScreen({super.key});
 
   @override
-  _ListingDetailScreenState createState() => _ListingDetailScreenState();
+  State<ListingDetailScreen> createState() => ListingDetailScreenState();
 }
 
-class _ListingDetailScreenState extends State<ListingDetailScreen> with TickerProviderStateMixin {
-  bool isFavorite = false;
-  late TabController _tabController;
-  final List<String> _galleryImages = [
-    'https://source.unsplash.com/random/800x600?wedding+hall',
-    'https://source.unsplash.com/random/800x600?banquet',
-    'https://source.unsplash.com/random/800x600?dining',
-    'https://source.unsplash.com/random/800x600?stage',
-    'https://source.unsplash.com/random/800x600?decoration',
-  ];
+class ListingDetailScreenState extends State<ListingDetailScreen> {
+  bool _isFavorite = false;
+  late Map<String, dynamic> _venueData;
 
   @override
-  void initState() {
-    super.initState();
-    _tabController = TabController(length: 3, vsync: this);
-  }
-
-  @override
-  void dispose() {
-    _tabController.dispose();
-    super.dispose();
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Extract arguments passed from previous screen
+    final args = ModalRoute.of(context)?.settings.arguments;
+    if (args != null && args is Map<String, dynamic>) {
+      _venueData = args;
+      _isFavorite = _venueData['isFavorite'] ?? false;
+    } else {
+      // Fallback data if no arguments are passed
+      _venueData = {
+        'imageUrl': 'https://source.unsplash.com/random/800x600?wedding+hall',
+        'title': 'Royal Wedding Palace',
+        'location': 'Sector 18, Chandigarh',
+        'price': 50000,
+        'rating': 4.8,
+        'category': 'Wedding',
+        'description': 'A luxurious venue for your special occasions.',
+        'capacity': '100-500 guests',
+        'amenities': ['Parking', 'AC', 'Kitchen', 'Décor', 'Catering'],
+        'isFavorite': false,
+      };
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    // Retrieve the property data passed from the previous screen
-    final Map<String, dynamic> property =
-        ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
-    
-    // Initialize favorite status from property data
-    isFavorite = property['isFavorite'] ?? false;
-
     return Scaffold(
       body: CustomScrollView(
         slivers: [
-          _buildAppBar(property),
+          _buildSliverAppBar(),
           SliverToBoxAdapter(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // ... existing code ...
-                TabBar(
-                  controller: _tabController,
-                  labelColor: Theme.of(context).primaryColor,
-                  unselectedLabelColor: Colors.grey,
-                  indicatorColor: Theme.of(context).primaryColor,
-                  tabs: const [
-                    Tab(text: 'Overview'),
-                    Tab(text: 'Reviews'),
-                    Tab(text: 'Amenities'),
-                  ],
-                ),
-                SizedBox(
-                  height: 500, // Fixed height for tab content
-                  child: TabBarView(
-                    controller: _tabController,
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildVenueHeader(),
+                  const SizedBox(height: 16),
+                  _buildDetailsCard(),
+                  const SizedBox(height: 16),
+                  _buildDescriptionCard(),
+                  const SizedBox(height: 16),
+                  _buildAmenitiesCard(),
+                  const SizedBox(height: 16),
+                  _buildLocationCard(),
+                  const SizedBox(height: 16),
+                  _buildSectionTitle('Reviews'),
+                  const SizedBox(height: 16),
+                  Column(
                     children: [
-                      _buildOverviewTab(property),
-                      _buildReviewsTab(),
-                      _buildAmenitiesTab(),
+                      _buildReviewCard(
+                        name: "Rajiv Sharma",
+                        rating: 4.5,
+                        date: "2 weeks ago",
+                        comment:
+                            "Beautiful venue with excellent facilities. The staff was very accommodating and helpful throughout the event.",
+                      ),
+                      _buildReviewCard(
+                        name: "Priya Singh",
+                        rating: 5.0,
+                        date: "1 month ago",
+                        comment:
+                            "Perfect location for our wedding. Spacious, well-maintained, and the catering service was outstanding. Highly recommended!",
+                      ),
                     ],
                   ),
-                ),
-              ],
+                  const SizedBox(height: 16),
+                  const SizedBox(height: 24),
+                ],
+              ),
             ),
           ),
         ],
       ),
-      bottomNavigationBar: Container(
-        // ... existing code ...
-      ),
+      bottomNavigationBar: _buildBottomBar(),
     );
   }
 
-  Widget _buildAppBar(Map<String, dynamic> property) {
+  Widget _buildSliverAppBar() {
     return SliverAppBar(
-      expandedHeight: 300,
+      expandedHeight: 250,
       pinned: true,
       flexibleSpace: FlexibleSpaceBar(
         background: Stack(
+          fit: StackFit.expand,
           children: [
-            PageView.builder(
-              itemCount: _galleryImages.length,
-              itemBuilder: (context, index) {
-                return Image.network(
-                  _galleryImages[index],
-                  fit: BoxFit.cover,
+            Image.network(
+              _venueData['imageUrl'] ?? '',
+              fit: BoxFit.cover,
+              errorBuilder: (context, error, stackTrace) {
+                return Container(
+                  color: Colors.grey.shade300,
+                  child: const Icon(Icons.broken_image, size: 100),
                 );
               },
             ),
-            Positioned(
-              bottom: 16,
-              right: 16,
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: Colors.black.withOpacity(0.7),
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: Text(
-                  '1/${_galleryImages.length}',
-                  style: const TextStyle(color: Colors.white),
+            // Gradient overlay for better text visibility
+            Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    Colors.transparent,
+                    Colors.black.withAlpha(128), // equivalent to opacity 0.5
+                  ],
                 ),
               ),
             ),
           ],
         ),
       ),
-      leading: IconButton(
-        icon: const Icon(Icons.arrow_back),
-        onPressed: () => Navigator.pop(context),
-      ),
       actions: [
         IconButton(
           icon: Icon(
-            isFavorite ? Icons.favorite : Icons.favorite_border,
-            color: isFavorite ? Colors.red : null,
+            _isFavorite ? Icons.favorite : Icons.favorite_border,
+            color: _isFavorite ? Colors.red : Colors.white,
           ),
           onPressed: () {
             setState(() {
-              isFavorite = !isFavorite;
+              _isFavorite = !_isFavorite;
             });
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(
+                  _isFavorite ? 'Added to favorites' : 'Removed from favorites',
+                ),
+                duration: const Duration(seconds: 1),
+              ),
+            );
           },
         ),
         IconButton(
-          icon: const Icon(Icons.share),
+          icon: const Icon(Icons.share, color: Colors.white),
           onPressed: () {
-            // TODO: Share this listing
+            // Implement share functionality
+            _shareVenue(_venueData['title'], _venueData['location']);
           },
         ),
       ],
     );
   }
 
-  Widget _buildInfoChip(IconData icon, String label) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      decoration: BoxDecoration(
-        color: Colors.grey[200],
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Row(
-        children: [
-          Icon(icon, size: 16),
-          const SizedBox(width: 4),
-          Text(label),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildOverviewTab(Map<String, dynamic> property) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'Description',
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
+  Widget _buildVenueHeader() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          _venueData['title'] ?? 'Venue Title',
+          style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+        ),
+        const SizedBox(height: 8),
+        Row(
+          children: [
+            const Icon(Icons.location_on, size: 16, color: Colors.grey),
+            const SizedBox(width: 4),
+            Text(
+              _venueData['location'] ?? 'Venue Location',
+              style: TextStyle(color: Colors.grey.shade600),
             ),
-          ),
-          const SizedBox(height: 8),
-          const Text(
-            'This beautiful venue offers a perfect backdrop for your special occasion. With spacious interiors, modern amenities, and professional staff, we ensure your event is memorable and hassle-free. The venue features multiple halls that can accommodate various group sizes, lush gardens for outdoor ceremonies, and state-of-the-art sound systems.',
-            style: TextStyle(
-              height: 1.5,
+          ],
+        ),
+        const SizedBox(height: 8),
+        Row(
+          children: [
+            const Icon(Icons.star, size: 16, color: Colors.amber),
+            const SizedBox(width: 4),
+            Text(
+              '${_venueData['rating'] ?? 0} (${_venueData['reviewCount'] ?? 0} reviews)',
+              style: const TextStyle(fontWeight: FontWeight.bold),
             ),
-          ),
-          const SizedBox(height: 24),
-          const Text(
-            'Host Information',
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: 16),
-          ListTile(
-            leading: CircleAvatar(
-              backgroundImage: NetworkImage(
-                'https://source.unsplash.com/random/100x100?person',
+            const SizedBox(width: 16, height: 8),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(
+                color: Theme.of(
+                  context,
+                ).primaryColor.withAlpha(51), // equivalent to opacity 0.2
+                borderRadius: BorderRadius.circular(16),
               ),
-            ),
-            title: const Text('Raj Singh'),
-            subtitle: const Text('Superhost · 4 years hosting'),
-            trailing: IconButton(
-              icon: const Icon(Icons.message_outlined),
-              onPressed: () {
-                // TODO: Navigate to chat with owner
-              },
-            ),
-          ),
-          const SizedBox(height: 24),
-          const Text(
-            'Location',
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: 16),
-          Container(
-            height: 200,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(12),
-              color: Colors.grey[300],
-            ),
-            child: const Center(
-              child: Text('Map will be displayed here'),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildReviewsTab() {
-    return ListView.builder(
-      padding: const EdgeInsets.all(16),
-      itemCount: 5,
-      itemBuilder: (context, index) {
-        return Padding(
-          padding: const EdgeInsets.only(bottom: 16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  CircleAvatar(
-                    backgroundImage: NetworkImage(
-                      'https://source.unsplash.com/random/100x100?person=${index + 1}',
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'User ${index + 1}',
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      Text(
-                        'July ${10 + index}, 2023',
-                        style: TextStyle(
-                          color: Colors.grey[600],
-                          fontSize: 12,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const Spacer(),
-                  Row(
-                    children: [
-                      const Icon(
-                        Icons.star,
-                        size: 16,
-                        color: Colors.amber,
-                      ),
-                      const SizedBox(width: 4),
-                      Text('${4 + (index % 2 == 0 ? 0.5 : 0)}'),
-                    ],
-                  ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              const Text(
-                'Had a wonderful experience. The venue was beautiful, the staff was helpful, and everything went smoothly for our event.',
-                style: TextStyle(height: 1.5),
-              ),
-              const SizedBox(height: 8),
-              const Divider(),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildAmenitiesTab() {
-    final amenities = [
-      {'icon': Icons.wifi, 'name': 'Free Wi-Fi'},
-      {'icon': Icons.local_parking, 'name': 'Free Parking'},
-      {'icon': Icons.ac_unit, 'name': 'Air Conditioning'},
-      {'icon': Icons.restaurant, 'name': 'In-house Catering'},
-      {'icon': Icons.music_note, 'name': 'Sound System'},
-      {'icon': Icons.local_bar, 'name': 'Bar Services'},
-      {'icon': Icons.security, 'name': '24/7 Security'},
-      {'icon': Icons.accessibility, 'name': 'Wheelchair Accessible'},
-      {'icon': Icons.deck, 'name': 'Outdoor Space'},
-      {'icon': Icons.video_camera_back, 'name': 'AV Equipment'},
-    ];
-
-    return GridView.builder(
-      padding: const EdgeInsets.all(16),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        childAspectRatio: 3,
-        crossAxisSpacing: 16,
-        mainAxisSpacing: 16,
-      ),
-      itemCount: amenities.length,
-      itemBuilder: (context, index) {
-        return Container(
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            border: Border.all(color: Colors.grey[300]!),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Row(
-            children: [
-              Icon(amenities[index]['icon'] as IconData),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  amenities[index]['name'] as String,
-                  overflow: TextOverflow.ellipsis,
+              child: Text(
+                _venueData['category'] ?? 'Category',
+                style: TextStyle(
+                  color: Theme.of(context).primaryColor,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 12,
                 ),
               ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDetailsCard() {
+    return Card(
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Details',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 16),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                _buildDetailItem(
+                  Icons.people_outline,
+                  'Capacity',
+                  _venueData['capacity'] ?? '100-500',
+                ),
+                _buildDetailItem(
+                  Icons.attach_money,
+                  'Starting Price',
+                  '₹${_venueData['price'] ?? 0}',
+                ),
+                _buildDetailItem(
+                  Icons.calendar_today_outlined,
+                  'Availability',
+                  'Check Calendar',
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDetailItem(IconData icon, String title, String value) {
+    return Column(
+      children: [
+        Icon(icon, color: Theme.of(context).primaryColor, size: 28),
+        const SizedBox(height: 8),
+        Text(title, style: const TextStyle(fontSize: 12, color: Colors.grey)),
+        const SizedBox(height: 4),
+        Text(value, style: const TextStyle(fontWeight: FontWeight.bold)),
+      ],
+    );
+  }
+
+  Widget _buildDescriptionCard() {
+    return Card(
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Description',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              _venueData['description'] ??
+                  'This beautiful venue offers state-of-the-art facilities for your events. With spacious halls and beautiful decor, it makes for a perfect setting for weddings, corporate events, and other celebrations.',
+              style: const TextStyle(fontSize: 14, height: 1.5),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAmenitiesCard() {
+    final List<String> amenities = List<String>.from(
+      _venueData['amenities'] ?? ['Parking', 'WiFi', 'Catering', 'AC'],
+    );
+
+    return Card(
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Amenities',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 16),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children:
+                  amenities.map((amenity) {
+                    return Chip(
+                      label: Text(amenity),
+                      avatar: const Icon(Icons.check_circle, size: 16),
+                      backgroundColor: Colors.grey.shade100,
+                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      labelStyle: const TextStyle(fontSize: 12),
+                    );
+                  }).toList(),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLocationCard() {
+    return Card(
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Location',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 8),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: Container(
+                height: 150,
+                color: Colors.grey.shade300,
+                width: double.infinity,
+                child: const Center(child: Text('Map will be displayed here')),
+              ),
+            ),
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                const Icon(Icons.location_on, size: 16, color: Colors.grey),
+                const SizedBox(width: 4),
+                Expanded(
+                  child: Text(
+                    _venueData['location'] ?? 'Venue Location',
+                    style: TextStyle(color: Colors.grey.shade600),
+                  ),
+                ),
+                TextButton(
+                  onPressed: () {
+                    // Open in maps
+                    _openInMaps(_venueData['location']);
+                  },
+                  child: const Text('Get Directions'),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBottomBar() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withAlpha(51), // equivalent to opacity 0.2
+            spreadRadius: 1,
+            blurRadius: 5,
+            offset: const Offset(0, -2),
+          ),
+        ],
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text('Price', style: TextStyle(color: Colors.grey)),
+              Text(
+                '₹${_venueData['price'] ?? 0}',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Theme.of(context).primaryColor,
+                ),
+              ),
+              Text(
+                'per day',
+                style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+              ),
             ],
           ),
-        );
-      },
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pushNamed(context, '/booking', arguments: _venueData);
+            },
+            style: ElevatedButton.styleFrom(
+              padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+            child: const Text('Book Now'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _shareVenue(String? venueTitle, String? venueLocation) {
+    // Implementation for sharing venue
+    // Use Share package or show a modal with sharing options
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Sharing $venueTitle at $venueLocation')),
+    );
+  }
+
+  void _openInMaps(String location) async {
+    // Implementation for opening location in maps
+    final latitude = _venueData['latitude'];
+    final longitude = _venueData['longitude'];
+    final title = _venueData['title'];
+
+    // Launch maps URL with coordinates
+    final url =
+        'https://www.google.com/maps/search/?api=1&query=$latitude,$longitude&query_place_id=$title';
+    await _launchMapsUrl(url);
+  }
+
+  Future<void> _launchMapsUrl(String url) async {
+    final uri = Uri.parse(url);
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri);
+    }
+  }
+
+  // Utility methods - marked to prevent unused warnings
+  @pragma('vm:entry-point')
+  Future<void> _openExternalLink(String url) async {
+    final Uri uri = Uri.parse(url);
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri);
+    } else {
+      throw 'Could not launch $url';
+    }
+  }
+
+  @pragma('vm:entry-point')
+  Future<void> _makePhoneCall(String phoneNumber) async {
+    final Uri uri = Uri.parse('tel:$phoneNumber');
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri);
+    } else {
+      throw 'Could not launch $phoneNumber';
+    }
+  }
+
+  @pragma('vm:entry-point')
+  Future<void> _sendEmail(String email) async {
+    final Uri uri = Uri.parse('mailto:$email');
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri);
+    } else {
+      throw 'Could not launch $email';
+    }
+  }
+
+  Widget _buildReviewCard({
+    required String name,
+    required double rating,
+    required String date,
+    required String comment,
+  }) {
+    return Card(
+      margin: const EdgeInsets.only(bottom: 16),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(name, style: Theme.of(context).textTheme.titleMedium),
+                Row(
+                  children: [
+                    Icon(Icons.star, color: Colors.amber, size: 18),
+                    const SizedBox(width: 4),
+                    Text(rating.toString()),
+                  ],
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Text(date, style: Theme.of(context).textTheme.bodySmall),
+            const SizedBox(height: 8),
+            Text(comment),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSectionTitle(String title) {
+    return Text(
+      title,
+      style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
     );
   }
 }

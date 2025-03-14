@@ -1,298 +1,377 @@
 import 'package:flutter/material.dart';
-import 'package:vivah_dera/screens/renter/booking_detail_screen.dart';
-import 'package:vivah_dera/screens/renter/renter_home_screen.dart';
+import 'package:intl/intl.dart';
+import 'package:share_plus/share_plus.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:pdf/pdf.dart';
+import 'package:pdf/widgets.dart' as pw;
+import 'package:url_launcher/url_launcher.dart';
+import 'dart:io';
 
 class BookingConfirmationScreen extends StatelessWidget {
-  final String bookingId;
-  final String listingTitle;
-  final String listingImage;
-  final DateTime startDate;
-  final DateTime endDate;
-  final String totalAmount;
-  final int guestCount;
+  final Map<String, dynamic> bookingData;
 
-  const BookingConfirmationScreen({
-    super.key,
-    required this.bookingId,
-    required this.listingTitle,
-    required this.listingImage,
-    required this.startDate,
-    required this.endDate,
-    required this.totalAmount,
-    required this.guestCount,
-  });
+  const BookingConfirmationScreen({super.key, required this.bookingData});
 
-  String _formatDate(DateTime date) {
-    return "${date.day}/${date.month}/${date.year}";
+  void _shareBooking(BuildContext context) async {
+    final venue = bookingData['venue'] as Map<String, dynamic>;
+    final bookingId = bookingData['booking_id'];
+
+    final shareText =
+        'I have booked ${venue['name']} on ${DateFormat('dd MMM yyyy').format(bookingData['start_date'])}!\nBooking ID: $bookingId';
+
+    await Share.share(shareText);
+  }
+
+  Future<void> _downloadReceipt(BuildContext context) async {
+    try {
+      final pdf = pw.Document();
+
+      pdf.addPage(pw.Page(
+          pageFormat: PdfPageFormat.a4,
+          build: (pw.Context context) {
+            return pw.Column(
+              children: [
+                pw.Header(level: 0, child: pw.Text('Booking Confirmation')),
+                pw.SizedBox(height: 20),
+                pw.Text('Booking ID: ${bookingData['booking_id']}'),
+                // Add more booking details to the PDF
+              ],
+            );
+          }));
+
+      final output = await getTemporaryDirectory();
+      final file =
+          File('${output.path}/booking_${bookingData['booking_id']}.pdf');
+      await file.writeAsBytes(await pdf.save());
+
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Receipt downloaded successfully!')),
+        );
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Failed to download receipt. Please try again.'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _callSupport() async {
+    final Uri phoneUri = Uri.parse('tel:+911234567890');
+    if (await canLaunchUrl(phoneUri)) {
+      await launchUrl(phoneUri);
+    } else {
+      throw 'Could not launch phone call';
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: SafeArea(
-        child: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.all(24.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                // Success icon and message
-                const SizedBox(height: 20),
-                Container(
-                  width: 100,
-                  height: 100,
-                  decoration: BoxDecoration(
-                    color: Colors.green.shade50,
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(
-                    Icons.check_circle,
-                    size: 60,
-                    color: Colors.green.shade600,
-                  ),
-                ),
-                const SizedBox(height: 24),
-                Text(
-                  'Booking Confirmed!',
-                  style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: Colors.green.shade700,
-                  ),
-                ),
-                const SizedBox(height: 12),
-                Text(
-                  'Your venue has been booked successfully',
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    color: Colors.grey.shade700,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 32),
-
-                // Booking information card
-                Container(
-                  width: double.infinity,
-                  decoration: BoxDecoration(
-                    border: Border.all(color: Colors.grey.shade200),
-                    borderRadius: BorderRadius.circular(16),
-                    color: Colors.white,
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.grey.shade100,
-                        blurRadius: 10,
-                        offset: const Offset(0, 5),
-                      ),
-                    ],
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Venue image
-                      ClipRRect(
-                        borderRadius: const BorderRadius.vertical(
-                          top: Radius.circular(16),
-                        ),
-                        child: Image.network(
-                          listingImage,
-                          height: 180,
-                          width: double.infinity,
-                          fit: BoxFit.cover,
-                        ),
-                      ),
-
-                      // Booking details
-                      Padding(
-                        padding: const EdgeInsets.all(16),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              listingTitle,
-                              style: Theme.of(context).textTheme.titleLarge
-                                  ?.copyWith(fontWeight: FontWeight.bold),
-                            ),
-                            const SizedBox(height: 16),
-
-                            _buildDetailItem(
-                              context,
-                              'Booking ID',
-                              bookingId,
-                              Icons.confirmation_number,
-                            ),
-                            const SizedBox(height: 8),
-                            _buildDetailItem(
-                              context,
-                              'Date',
-                              startDate == endDate
-                                  ? _formatDate(startDate)
-                                  : '${_formatDate(startDate)} - ${_formatDate(endDate)}',
-                              Icons.calendar_today,
-                            ),
-                            const SizedBox(height: 8),
-                            _buildDetailItem(
-                              context,
-                              'Guests',
-                              '$guestCount guests',
-                              Icons.people,
-                            ),
-                            const SizedBox(height: 8),
-                            _buildDetailItem(
-                              context,
-                              'Total Amount',
-                              totalAmount,
-                              Icons.payment,
-                            ),
-                          ],
-                        ),
-                      ),
-
-                      // Divider
-                      const Divider(height: 1),
-
-                      // Download receipt button
-                      Padding(
-                        padding: const EdgeInsets.all(16),
-                        child: TextButton.icon(
-                          onPressed: () {
-                            // In a real app, generate PDF receipt and download
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('Downloading receipt...'),
-                              ),
-                            );
-                          },
-                          icon: const Icon(Icons.download),
-                          label: const Text('Download Receipt'),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-
-                const SizedBox(height: 24),
-
-                // Next steps
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: Colors.blue.shade50,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.blue.shade100),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Icon(Icons.info_outline, color: Colors.blue.shade700),
-                          const SizedBox(width: 8),
-                          Text(
-                            'What\'s Next?',
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              color: Colors.blue.shade700,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        '• We\'ve sent booking details to your email\n'
-                        '• The venue owner will contact you soon\n'
-                        '• You can view all your bookings in the Bookings tab\n'
-                        '• You can contact the venue owner through messages',
-                        style: TextStyle(color: Colors.blue.shade800),
-                      ),
-                    ],
-                  ),
-                ),
-
-                const SizedBox(height: 32),
-
-                // Action buttons
-                Row(
-                  children: [
-                    Expanded(
-                      child: OutlinedButton(
-                        onPressed: () {
-                          // Navigate to home screen
-                          Navigator.of(context).pushAndRemoveUntil(
-                            MaterialPageRoute(
-                              builder: (context) => const RenterHomeScreen(),
-                            ),
-                            (route) => false,
-                          );
-                        },
-                        child: const Text('Return to Home'),
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: ElevatedButton(
-                        onPressed: () {
-                          // Navigate to booking details
-                          Navigator.of(context).pushReplacement(
-                            MaterialPageRoute(
-                              builder:
-                                  (context) =>
-                                      BookingDetailScreen(bookingId: bookingId),
-                            ),
-                          );
-                        },
-                        child: const Text('View Booking'),
-                      ),
-                    ),
-                  ],
-                ),
-
-                const SizedBox(height: 16),
-
-                // Share button
-                TextButton.icon(
-                  onPressed: () {
-                    // Share booking details
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Sharing booking details...'),
-                      ),
-                    );
-                  },
-                  icon: const Icon(Icons.share),
-                  label: const Text('Share Booking Details'),
-                ),
-              ],
-            ),
+      body: CustomScrollView(
+        slivers: [
+          SliverAppBar(
+            pinned: true,
+            title: const Text('Booking Confirmed'),
+            centerTitle: true,
+            actions: [
+              IconButton(
+                icon: const Icon(Icons.share),
+                onPressed: () => _shareBooking(context),
+              ),
+            ],
           ),
-        ),
+          SliverFillRemaining(child: _buildContent(context)),
+        ],
       ),
     );
   }
 
-  Widget _buildDetailItem(
-    BuildContext context,
-    String label,
-    String value,
-    IconData icon,
-  ) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Icon(icon, size: 18, color: Colors.grey),
-        const SizedBox(width: 8),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              label,
-              style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
+  Widget _buildContent(BuildContext context) {
+    final venue = bookingData['venue'] as Map<String, dynamic>;
+    final bookingId = bookingData['booking_id'];
+    final startDate = bookingData['start_date'] as DateTime?;
+    final endDate = bookingData['end_date'] as DateTime?;
+    final dateFormat = DateFormat('dd MMM yyyy');
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          // Success Icon
+          CircleAvatar(
+            radius: 40,
+            backgroundColor: Colors.green.shade50,
+            child: Icon(
+              Icons.check_circle,
+              size: 60,
+              color: Colors.green.shade400,
             ),
-            Text(
-              value,
-              style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 16),
+          ),
+          const SizedBox(height: 24),
+
+          // Confirmation Text
+          const Text(
+            'Booking Confirmed!',
+            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Your booking has been confirmed. You will receive a confirmation email shortly.',
+            textAlign: TextAlign.center,
+            style: TextStyle(color: Colors.grey.shade600),
+          ),
+          const SizedBox(height: 32),
+
+          // Booking Details Card
+          Card(
+            elevation: 2,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
             ),
-          ],
-        ),
-      ],
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Venue Info
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(8),
+                        child: Image.network(
+                          venue['image'] ?? '',
+                          width: 80,
+                          height: 80,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) {
+                            return Container(
+                              width: 80,
+                              height: 80,
+                              color: Colors.grey.shade300,
+                              child: const Icon(Icons.image_not_supported),
+                            );
+                          },
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              venue['name'] ?? 'Venue Name',
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 18,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Row(
+                              children: [
+                                const Icon(
+                                  Icons.location_on,
+                                  size: 14,
+                                  color: Colors.grey,
+                                ),
+                                const SizedBox(width: 4),
+                                Expanded(
+                                  child: Text(
+                                    venue['location'] ?? 'Venue Location',
+                                    style: TextStyle(
+                                      color: Colors.grey.shade600,
+                                      fontSize: 14,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  const Divider(height: 32),
+
+                  // Booking ID
+                  _buildInfoRow('Booking ID', bookingId ?? 'N/A'),
+
+                  // Booking Date Range
+                  if (startDate != null && endDate != null)
+                    _buildInfoRow(
+                      'Booking Dates',
+                      '${dateFormat.format(startDate)} - ${dateFormat.format(endDate)}',
+                    ),
+
+                  // Guest Count
+                  _buildInfoRow(
+                    'Number of Guests',
+                    '${bookingData['guest_count'] ?? 'N/A'}',
+                  ),
+
+                  // Event Name
+                  _buildInfoRow(
+                    'Event',
+                    '${bookingData['event_name'] ?? 'N/A'} (${bookingData['event_type'] ?? 'N/A'})',
+                  ),
+
+                  // Selected Services
+                  if (bookingData['services'] != null)
+                    _buildInfoRow(
+                      'Services',
+                      (bookingData['services'] as List).join(', '),
+                    ),
+
+                  const Divider(height: 32),
+
+                  // Payment Details
+                  _buildInfoRow(
+                    'Amount Paid',
+                    '₹${bookingData['total_amount'] ?? 'N/A'}',
+                    isBold: true,
+                  ),
+                  _buildInfoRow(
+                    'Payment Method',
+                    _formatPaymentMethod(
+                      bookingData['payment_method'] ?? 'N/A',
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 32),
+
+          // Action Buttons
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: () => _downloadReceipt(context),
+                  icon: const Icon(Icons.download),
+                  label: const Text('Download Receipt'),
+                  style: OutlinedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: ElevatedButton.icon(
+                  onPressed: () {
+                    Navigator.pushReplacementNamed(context, '/renter_home');
+                  },
+                  icon: const Icon(Icons.home),
+                  label: const Text('Go to Home'),
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          // Support Contact
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.blue.shade50,
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Row(
+              children: [
+                Icon(Icons.support_agent, color: Colors.blue.shade700),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Need Help?',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: Colors.blue.shade700,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        'Contact our support team for any questions.',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.blue.shade700,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                TextButton(
+                  onPressed: () async {
+                    try {
+                      await _callSupport();
+                    } catch (e) {
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text(
+                                'Could not initiate call. Please try again.'),
+                            backgroundColor: Colors.red,
+                          ),
+                        );
+                      }
+                    }
+                  },
+                  child: const Text('Call'),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
+  }
+
+  Widget _buildInfoRow(String label, String value, {bool isBold = false}) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12.0),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 110,
+            child: Text(
+              label,
+              style: TextStyle(color: Colors.grey.shade600, fontSize: 14),
+            ),
+          ),
+          Expanded(
+            child: Text(
+              value,
+              style: TextStyle(
+                fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
+                fontSize: 14,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _formatPaymentMethod(String method) {
+    switch (method.toLowerCase()) {
+      case 'online':
+        return 'Online Payment';
+      case 'bank':
+        return 'Bank Transfer';
+      default:
+        return method;
+    }
   }
 }

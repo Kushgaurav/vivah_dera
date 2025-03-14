@@ -1,9 +1,9 @@
-import 'package:flutter/material.dart';
 import 'dart:async';
+import 'package:flutter/material.dart';
 import '../../themes/app_theme.dart';
 
 class SplashScreen extends StatefulWidget {
-  const SplashScreen({Key? key}) : super(key: key);
+  const SplashScreen({super.key});
 
   @override
   State<SplashScreen> createState() => _SplashScreenState();
@@ -35,16 +35,15 @@ class _SplashScreenState extends State<SplashScreen>
     _scaleAnimation = Tween<double>(begin: 0.8, end: 1.0).animate(
       CurvedAnimation(
         parent: _animationController,
-        curve: Interval(0.0, 0.65, curve: Curves.easeOutCubic),
+        curve: Interval(0.35, 1.0, curve: Curves.easeOut),
       ),
     );
 
-    // Start animation
     _animationController.forward();
 
-    // Navigate to welcome screen after delay
+    // Navigate to welcome screen after 3 seconds
     Timer(const Duration(seconds: 3), () {
-      Navigator.of(context).pushReplacementNamed('/welcome');
+      Navigator.pushReplacementNamed(context, '/welcome');
     });
   }
 
@@ -57,65 +56,69 @@ class _SplashScreenState extends State<SplashScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      body: Center(
-        child: AnimatedBuilder(
-          animation: _animationController,
-          builder: (context, child) {
-            return Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                // Logo
-                Opacity(
-                  opacity: _opacityAnimation.value,
-                  child: Transform.scale(
-                    scale: _scaleAnimation.value,
-                    child: Container(
-                      width: 140,
-                      height: 140,
-                      decoration: BoxDecoration(
-                        color: AppTheme.primaryColor.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(28),
-                      ),
-                      child: const Icon(
-                        Icons.home_work_rounded,
-                        size: 70,
-                        color: AppTheme.primaryColor,
-                      ),
-                    ),
-                  ),
+      body: Container(
+        width: double.infinity,
+        height: double.infinity,
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topRight,
+            end: Alignment.bottomLeft,
+            colors: [
+              Theme.of(context).colorScheme.primary,
+              Theme.of(context).colorScheme.secondary,
+            ],
+          ),
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            ScaleTransition(
+              scale: _scaleAnimation,
+              child: Container(
+                width: 140,
+                height: 140,
+                decoration: BoxDecoration(
+                  color: AppTheme.primaryColor.withAlpha(
+                    25,
+                  ), // equivalent to opacity 0.1
+                  borderRadius: BorderRadius.circular(28),
                 ),
-                const SizedBox(height: 24),
+                child: const Icon(
+                  Icons.home_work_rounded,
+                  size: 70,
+                  color: AppTheme.primaryColor,
+                ),
+              ),
+            ),
+            const SizedBox(height: 24),
 
-                // App name
-                Opacity(
-                  opacity: _opacityAnimation.value,
-                  child: Text(
-                    'Vivah Dera',
-                    style: AppTheme.heading1TextStyle.copyWith(
-                      color: Theme.of(context).colorScheme.onBackground,
-                    ),
-                  ),
+            // App name
+            Opacity(
+              opacity: _opacityAnimation.value,
+              child: Text(
+                'Vivah Dera',
+                style: AppTheme.heading1TextStyle.copyWith(
+                  color: Theme.of(context).colorScheme.onSurface,
                 ),
-                const SizedBox(height: 32),
+              ),
+            ),
+            const SizedBox(height: 32),
 
-                // Loading indicator
-                Opacity(
-                  opacity: _opacityAnimation.value,
-                  child: SizedBox(
-                    width: 32,
-                    height: 32,
-                    child: CircularProgressIndicator(
-                      valueColor: AlwaysStoppedAnimation<Color>(
-                        AppTheme.primaryColor,
-                      ),
-                      strokeWidth: 3,
-                    ),
+            // Loading indicator
+            Opacity(
+              opacity: _opacityAnimation.value,
+              child: SizedBox(
+                width: 32,
+                height: 32,
+                child: CircularProgressIndicator(
+                  valueColor: AlwaysStoppedAnimation<Color>(
+                    AppTheme.primaryColor,
                   ),
+                  strokeWidth: 3,
                 ),
-              ],
-            );
-          },
+              ),
+            ),
+          ],
         ),
       ),
     );
